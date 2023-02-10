@@ -9,6 +9,7 @@ coverage:
                 target: 100%
                 threshold: 1%
         patch:
-            target: 100%
-            threshold: 1%
+            default:
+                target: 100%
+                threshold: 1%
 comment: false
