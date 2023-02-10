@@ -8,6 +8,7 @@ on:
 
 jobs:
     production-deploy:
+        name: Deploy to Production
         if: ${{ github.repository == 'UoA-Discords/api' && github.event.workflow_run.conclusion == 'success' }}
         runs-on: ubuntu-latest
         concurrency: production_environment
