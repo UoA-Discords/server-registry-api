@@ -1,4 +1,4 @@
-# UoA Discords / api
+# UoA Discords / API
 
 This is the API for all of our services:
 
