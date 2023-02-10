@@ -8,7 +8,7 @@
 This is the API for all of our services:
 
 -   Discord Server Registry
--   Discord Server Global Banlist
+-   Global Discord User Banlist
 -   Minecraft Server Whitelist
 
 The production version of this API exists at https://api.uoa-discords.com, and the documentation can be found [here](https://api.uoa-discords.com/api-docs).
