@@ -1,0 +1,5 @@
+{
+    "watch": ["src", "scripts", "config.json"],
+    "ext": "ts,json",
+    "ignore": ["**/*.test.ts", "**/testing/**"]
+}
