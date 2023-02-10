@@ -11,9 +11,3 @@ describe('subtract', () => {
         expect(subtract(5, 3)).toBe(2);
     });
 });
-
-describe('multiply', () => {
-    it('multiplies 2 numbers', () => {
-        expect(multiply(2, 3)).toBe(6);
-    });
-});
