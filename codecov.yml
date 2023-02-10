@@ -4,4 +4,11 @@ coverage:
             default:
                 target: 100%
                 threshold: 1%
+        patch: off
+        changes:
+            target: 100%
+            threshold: 1%
+            if_not_found: success
+            informational: false
+            only_pulls: false
 comment: false
