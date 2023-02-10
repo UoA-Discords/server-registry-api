@@ -1,5 +1,10 @@
 # UoA Discords / API
 
+[![CI](https://github.com/UoA-Discords/api/actions/workflows/node.js.ci.yml/badge.svg)](https://github.com/UoA-Discords/api/actions/workflows/node.js.ci.yml)
+[![CodeQL](https://github.com/UoA-Discords/api/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/UoA-Discords/api/actions/workflows/codeql-analysis.yml)
+[![Deploy](https://github.com/UoA-Discords/api/actions/workflows/deploy.yml/badge.svg)](https://github.com/UoA-Discords/api/actions/workflows/deploy.yml)
+[![codecov](https://codecov.io/gh/UoA-Discords/api/branch/main/graph/badge.svg?token=TC6189PH9R)](https://codecov.io/gh/UoA-Discords/api)
+
 This is the API for all of our services:
 
 -   Discord Server Registry
