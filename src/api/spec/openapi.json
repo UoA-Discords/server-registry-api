@@ -1,0 +1,38 @@
+{
+    "openapi": "3.0.3",
+    "info": {
+        "title": "UoA Discords API",
+        "contact": {
+            "name": "API Support (Discord)",
+            "url": "https://discord.gg/XmdRWSCy2U"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https://github.com/UoA-Discords/api/blob/main/LICENSE"
+        },
+        "version": "0.0.1"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:{port}",
+            "description": "Development Server",
+            "variables": {
+                "port": {
+                    "default": "5000"
+                }
+            }
+        },
+        {
+            "url": "https://registry.uoa-discords.com",
+            "description": "Production Server"
+        }
+    ],
+    "paths": {},
+    "components": {
+        "schemas": {},
+        "responses": {},
+        "parameters": {},
+        "securitySchemes": {}
+    },
+    "tags": []
+}

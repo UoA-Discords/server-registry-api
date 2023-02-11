@@ -10,7 +10,7 @@ The minimum requirements for code contributions are:
 
 ### Pipeline
 
-Our [production API](https://api.uoa-discords.com) is always up-to-date with the latest commit on the `main` branch, provided the CI passes.
+Our [production API](https://registry.uoa-discords.com) is always up-to-date with the latest commit on the `main` branch, provided the CI passes.
 
 ### Other
 

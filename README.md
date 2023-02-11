@@ -1,17 +1,15 @@
-# UoA Discords / API
+# UoA Discords / Server Registry API
 
 [![CI](https://github.com/UoA-Discords/api/actions/workflows/node.js.ci.yml/badge.svg)](https://github.com/UoA-Discords/api/actions/workflows/node.js.ci.yml)
 [![CodeQL](https://github.com/UoA-Discords/api/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/UoA-Discords/api/actions/workflows/codeql-analysis.yml)
 [![Deploy](https://github.com/UoA-Discords/api/actions/workflows/deploy.yml/badge.svg)](https://github.com/UoA-Discords/api/actions/workflows/deploy.yml)
 [![codecov](https://codecov.io/gh/UoA-Discords/api/branch/main/graph/badge.svg?token=TC6189PH9R)](https://codecov.io/gh/UoA-Discords/api)
 
-This is the API for all of our services:
+This is the API for our UoA Discord server registry, an online catalogue of various University of Auckland Discord servers.
 
--   Discord Server Registry
--   Global Discord User Banlist
--   Minecraft Server Whitelist
+We are not affiliated with the University of Auckland in any official capacity.
 
-The production version of this API exists at https://api.uoa-discords.com, and the documentation can be found [here](https://api.uoa-discords.com/api-docs).
+The production version of this API exists at https://registry.uoa-discords.com, and the documentation can be found [here](https://registry.uoa-discords.com/api-docs).
 
 ## Table of Contents
 
@@ -47,8 +45,8 @@ This API uses [MongoDB](https://www.mongodb.com/) for persistent data storage an
 Next you can set up the repository from a terminal:
 
 ```sh
-git clone https://github.com/UoA-Discords/api.git uoa-discords-api
-cd uoa-discords-api
+git clone https://github.com/UoA-Discords/server-registry-api.git server-registry-api
+cd server-registry-api
 pnpm install
 cp config.example.json config.json
 ```
@@ -71,7 +69,6 @@ All done! You can now run scripts using `pnpm <script name>`, e.g. `pnpm start`.
 #### Dependency Reference
 
 -   `axios` Makes web requests easy.
--   `body-parser` Handles file uploads.
 -   `cors` Allows configured websites to use the API.
 -   `express` Web framework the API uses.
 -   `express-openapi-validator` Ensures endpoints match their documentation.
@@ -104,12 +101,16 @@ This API is licensed under the [MIT license](./LICENSE).
 
 ### FAQ
 
-Trying out any operation in the [api-spec](https://api.uoa-discords.com/api-spec) returns "Failed to fetch", how do I fix this?
+Trying out any operation in the [api-spec](https://registry.uoa-discords.com/api-spec) returns "Failed to fetch", how do I fix this?
 
-> Make sure your server (at the top of the page) is set to `api.uoa-discords.com`, since by default it looks for your development server which might not be running.
+> Make sure your server (at the top of the page) is set to `registry.uoa-discords.com`, since by default it looks for your development server which might not be running.
 >
 > ![image](./.github/images/FAQ_1.png)
 
 I've set up a local version of the API and logged in, but I don't seem to have any permissions?
 
 > You'll need to edit your user in MongoDB to give yourself the `Owner` permission (value 8).
+
+What are the possible statuses of a server in the registry?
+
+> ![image](./.github/images//ServerStatusTransitions.png)
