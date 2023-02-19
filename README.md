@@ -1,4 +1,4 @@
-# UoA Discords / Server Registry API
+# UoA Discords / Server Registry API <!-- omit in toc -->
 
 [![CI](https://github.com/UoA-Discords/api/actions/workflows/node.js.ci.yml/badge.svg)](https://github.com/UoA-Discords/api/actions/workflows/node.js.ci.yml)
 [![CodeQL](https://github.com/UoA-Discords/api/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/UoA-Discords/api/actions/workflows/codeql-analysis.yml)
@@ -11,6 +11,9 @@ We are not affiliated with the University of Auckland in any official capacity.
 
 The production version of this API exists at https://registry.uoa-discords.com, and the documentation can be found [here](https://registry.uoa-discords.com/api-docs).
 
+## Table of Contents <!-- omit in toc -->
+
+- [Technologies](#technologies)
 - [Installation](#installation)
 - [Documentation](#documentation)
   - [Script Reference](#script-reference)
@@ -20,11 +23,48 @@ The production version of this API exists at https://registry.uoa-discords.com, 
 - [Licensing](#licensing)
 - [FAQ](#faq)
 
+### Technologies
+
+  <style>
+      div.badgeContainer {
+        display: flex;
+      }
+
+      div.badgeContainer > a {
+        margin-right: 0.5em;
+      }
+  </style>
+
+  <div class="badgeContainer">
+
+  <a href="https://expressjs.com/">
+      <img src="https://img.shields.io/badge/express-%23000000.svg?&style=for-the-badge&logo=express&logoColor=white" alt="Express.js" />
+  </a>
+
+  <a href="https://www.typescriptlang.org/">
+    <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="Typescript" />
+  </a>
+
+  <a href="https://nodejs.org/">
+  <img src="https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white" alt="Node.js">
+  </a>
+
+  <a href="https://www.mongodb.com/">
+  <img src="https://img.shields.io/badge/MongoDB-%234ea94b.svg?style=for-the-badge&logo=mongodb&logoColor=white" alt="MongoDB">
+  </a>
+
+  <a href="https://jestjs.io/">
+  <img src="https://img.shields.io/badge/-jest-%23C21325?style=for-the-badge&logo=jest&logoColor=white" alt="Jest">
+  </a>
+  
+  </div>
+
+
 ### Installation
 
 Dependencies:
 
--   [Node JS](https://nodejs.org/en/) v16 or higher. Non-LTS and versions below 16 will probably work, but haven't been tested.
+-   [Node JS](https://nodejs.org/) v16 or higher. Non-LTS and versions below 16 will probably work, but haven't been tested.
 -   [pnpm](https://pnpm.io/), recommended but npm and yarn should still work fine.
 
 You can easily get pnpm using:
