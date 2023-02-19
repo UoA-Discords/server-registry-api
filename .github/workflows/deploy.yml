@@ -9,7 +9,7 @@ on:
 jobs:
     production-deploy:
         name: Deploy to Production
-        if: ${{ github.repository == 'UoA-Discords/api' && github.event.workflow_run.conclusion == 'success' }}
+        if: ${{ github.repository == 'UoA-Discords/server-registry-api' && github.event.workflow_run.conclusion == 'success' }}
         runs-on: ubuntu-latest
         concurrency: production_environment
         steps:
@@ -21,6 +21,6 @@ jobs:
                   password: ${{ secrets.PASSWORD }}
                   port: ${{ secrets.PORT }}
                   script: |
-                      cd services_v2/uoa-discords-api
+                      cd services_v2/uoa-discords/server-registry-api
                       chmod +x scripts/deploy.sh
                       ./scripts/deploy.sh
