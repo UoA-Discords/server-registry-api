@@ -25,6 +25,8 @@ The production version of this API exists at https://registry.uoa-discords.com, 
 
 ### Technologies
 
+<div>
+
   ![Express](https://img.shields.io/badge/express.js-%23000000.svg?style=for-the-badge&logo=express&logoColor=white)
 
   ![Typescript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
@@ -34,6 +36,9 @@ The production version of this API exists at https://registry.uoa-discords.com, 
   ![MongoDB](https://img.shields.io/badge/MongoDB-%234ea94b.svg?style=for-the-badge&logo=mongodb&logoColor=white)
 
   ![Jest](https://img.shields.io/badge/-jest-%23C21325?style=for-the-badge&logo=jest&logoColor=white)
+
+</div>
+
 
 
 ### Installation
