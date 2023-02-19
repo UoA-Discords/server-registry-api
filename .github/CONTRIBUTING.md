@@ -1,5 +1,15 @@
 # Contributing
 
+- [Repository Structure](#repository-structure)
+- [Requirements](#requirements)
+- [Pipeline](#pipeline)
+- [Other](#other)
+
+
+### Repository Structure
+
+The overall structure and layout of this repository is largely based off the [bulletproof node.js project architecture](https://www.softwareontheroad.com/ideal-nodejs-project-structure/#folder), you can find README's in most of the directories within the [src](../src/) folder that explain what they encapsulate.
+
 ### Requirements
 
 The minimum requirements for code contributions are:
