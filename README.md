@@ -25,18 +25,6 @@ The production version of this API exists at https://registry.uoa-discords.com, 
 
 ### Technologies
 
-  <style>
-      div.badgeContainer {
-        display: flex;
-      }
-
-      div.badgeContainer > a {
-        margin-right: 0.5em;
-      }
-  </style>
-
-  <div class="badgeContainer">
-
   <a href="https://expressjs.com/">
       <img src="https://img.shields.io/badge/express-%23000000.svg?&style=for-the-badge&logo=express&logoColor=white" alt="Express.js" />
   </a>
@@ -56,9 +44,6 @@ The production version of this API exists at https://registry.uoa-discords.com, 
   <a href="https://jestjs.io/">
   <img src="https://img.shields.io/badge/-jest-%23C21325?style=for-the-badge&logo=jest&logoColor=white" alt="Jest">
   </a>
-  
-  </div>
-
 
 ### Installation
 
