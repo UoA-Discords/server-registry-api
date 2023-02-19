@@ -1,4 +1,6 @@
-# Contributing
+# Contributing <!-- omit in toc -->
+
+## Table of Contents <!-- omit in toc -->
 
 - [Repository Structure](#repository-structure)
 - [Requirements](#requirements)
