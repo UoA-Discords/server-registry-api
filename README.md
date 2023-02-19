@@ -11,16 +11,14 @@ We are not affiliated with the University of Auckland in any official capacity.
 
 The production version of this API exists at https://registry.uoa-discords.com, and the documentation can be found [here](https://registry.uoa-discords.com/api-docs).
 
-## Table of Contents
-
--   [Installation](#installation)
--   [Documentation](#documentation)
-    -   [Script Reference](#script-reference)
-    -   [Dependency Reference](#dependency-reference)
-    -   [Production Build](#production-build)
--   [Contributing](#contributing)
--   [Licensing](#licensing)
--   [FAQ](#faq)
+- [Installation](#installation)
+- [Documentation](#documentation)
+  - [Script Reference](#script-reference)
+  - [Dependency Reference](#dependency-reference)
+  - [Production Build](#production-build)
+- [Contributing](#contributing)
+- [Licensing](#licensing)
+- [FAQ](#faq)
 
 ### Installation
 
