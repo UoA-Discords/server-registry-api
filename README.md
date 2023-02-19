@@ -36,7 +36,7 @@ The production version of this API exists at https://registry.uoa-discords.com, 
   </a>
 
   <a href="https://expressjs.com/">
-  <img alt="Express.js" src="https://img.shields.io/badge/express.js-%23000000.svg?style=for-the-badge&logo=express&logoColor=white" />
+  <img alt="Express.js" src="https://img.shields.io/badge/express.js-%23404d59.svg?style=for-the-badge&logo=express&logoColor=%2361DAFB" />
   </a>
 
   <a href="https://www.mongodb.com/">
