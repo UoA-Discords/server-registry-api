@@ -2,10 +2,10 @@ import { APIUser, GuildVerificationLevel } from 'discord-api-types/v10';
 import { EntryFacultyTags } from '../enums/EntryFacultyTags';
 import { ServerStatus } from '../enums/ServerStatus';
 import { DiscordIdString, ISOString } from '../types/utility';
-import { IServerChangeRecord } from './IServerChangeRecord';
+import { ServerChangeRecord } from './ServerChangeRecord';
 
 /** A Discord server in our database. */
-export interface IServer<T extends ServerStatus> {
+export interface Server<T extends ServerStatus> {
     /** This is underscored to show that it is used as a document index in MongoDB. */
     _id: DiscordIdString;
 
@@ -51,5 +51,5 @@ export interface IServer<T extends ServerStatus> {
 
     entryFacultyTags: EntryFacultyTags;
 
-    statusLog: IServerChangeRecord[];
+    statusLog: ServerChangeRecord[];
 }

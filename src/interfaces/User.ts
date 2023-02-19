@@ -2,10 +2,10 @@ import { ServerStatus } from '../enums/ServerStatus';
 import { ServerStatusAction } from '../enums/ServerStatusAction';
 import { UserPermissions } from '../enums/UserPermissions';
 import { DiscordIdString, ISOString } from '../types/utility';
-import { IUserChangeRecord } from './IUserChangeRecord';
+import { UserChangeRecord } from './UserChangeRecord';
 
 /** Shape of a user in our database. */
-export interface IUser {
+export interface User {
     /** This is underscored to show that it is used as a document index in MongoDB. */
     _id: DiscordIdString;
 
@@ -60,5 +60,5 @@ export interface IUser {
      */
     actions: Record<ServerStatusAction, number>;
 
-    permissionsLog: IUserChangeRecord[];
+    permissionsLog: UserChangeRecord[];
 }

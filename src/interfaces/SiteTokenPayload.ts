@@ -5,7 +5,7 @@ import { DiscordIdString } from '../types/utility';
  *
  * Site tokens are provided in the `Authorization` header of any elevated requests.
  */
-export interface ISiteTokenPayload {
+export interface SiteTokenPayload {
     /**
      * The Discord user ID of the requester.
      *
