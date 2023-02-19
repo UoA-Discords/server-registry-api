@@ -21,6 +21,6 @@ jobs:
                   password: ${{ secrets.PASSWORD }}
                   port: ${{ secrets.PORT }}
                   script: |
-                      cd services_v2/uoa-discords-api
+                      cd services_v2/uoa-discords/server-registry-api
                       chmod +x scripts/deploy.sh
                       ./scripts/deploy.sh

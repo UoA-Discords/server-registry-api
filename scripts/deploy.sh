@@ -2,7 +2,7 @@
 # pulls latest changes, then restarts the process instance
 # process is managed via PM2
 
-processName="uoa-discords-api"
+processName="uoa-discords/server-registry-api"
 
 # exit when any command fails
 set -e
