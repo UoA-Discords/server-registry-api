@@ -1,5 +1,4 @@
 import { Collection } from 'mongodb';
-import { ServerStatus } from '../enums/ServerStatus';
-import { Server } from '../interfaces/Server';
+import { Server } from '../types/Server';
 
-export type ServerModel = Collection<Server<ServerStatus>>;
+export type ServerModel = Collection<Server>;

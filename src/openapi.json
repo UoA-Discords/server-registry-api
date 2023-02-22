@@ -1,0 +1,253 @@
+{
+    "openapi": "3.0.3",
+    "info": {
+        "title": "UoA Discords API",
+        "contact": {
+            "name": "API Support (Discord)",
+            "url": "https://discord.gg/XmdRWSCy2U"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https://github.com/UoA-Discords/api/blob/main/LICENSE"
+        },
+        "version": "0.0.1"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:{port}",
+            "description": "Development Server",
+            "variables": {
+                "port": {
+                    "default": "5000"
+                }
+            }
+        },
+        {
+            "url": "https://registry.uoa-discords.com",
+            "description": "Production Server"
+        }
+    ],
+    "paths": {
+        "/": {
+            "get": {
+                "tags": ["Miscellaneous"],
+                "security": [{}, { "rateLimitBypassToken": [] }],
+                "operationId": "getRoot",
+                "responses": {
+                    "200": {
+                        "description": "Basic welcome message.",
+                        "content": {
+                            "text/html": {
+                                "example": "You found the UoA Discords server registry API!<br />Having a look around? Check out the <a href=\"/api-docs\">API documentation</a>!"
+                            }
+                        }
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/RateLimited429"
+                    }
+                }
+            },
+            "post": {
+                "tags": ["Miscellaneous"],
+                "security": [{}, { "rateLimitBypassToken": [] }],
+                "operationId": "postRoot",
+                "responses": {
+                    "200": {
+                        "description": "Basic API information.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": ["startTime", "version", "receivedRequest"],
+                                    "properties": {
+                                        "startTime": {
+                                            "$ref": "#/components/schemas/ISOString"
+                                        },
+                                        "version": {
+                                            "type": "string",
+                                            "example": "12.34.56"
+                                        },
+                                        "receivedRequest": {
+                                            "$ref": "#/components/schemas/ISOString"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/RateLimited429"
+                    }
+                }
+            }
+        },
+        "/ip": {
+            "get": {
+                "tags": ["Miscellaneous"],
+                "security": [{}, { "rateLimitBypassToken": [] }],
+                "operationId": "getIp",
+                "description": "Returns IP address of the requester, useful for [configuring proxies](https://www.npmjs.com/package/express-rate-limit#:~:text=Troubleshooting%20Proxy%20Issues).",
+                "responses": {
+                    "200": {
+                        "description": "Your IP address according to the server. May be `::1` if viewing from the same network.",
+                        "content": {
+                            "text/html": {
+                                "example": "123.123.123.123"
+                            }
+                        }
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/RateLimited429"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "ISOString": {
+                "type": "string",
+                "description": "A string in ISO format, used to store dates.",
+                "example": "2022-11-08T02:20:08.190Z"
+            },
+            "DiscordIDString": {
+                "type": "string",
+                "description": "A Discord ID.",
+                "example": "909645967081476147"
+            }
+        },
+        "responses": {
+            "AuthError401": {
+                "description": "Authentication failed.",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": ["message", "hint"],
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "example": "Invalid Token Payload Type"
+                                },
+                                "hint": {
+                                    "type": "string",
+                                    "example": "Missing refresh_token (expected string, got undefined)."
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "ForbiddenError403": {
+                "description": "User lacks permission(s) to carry out this action.",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": ["requiredPermissions", "currentPermissions", "missingPermissions"],
+                            "properties": {
+                                "requiredPermissions": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "example": ["Favourite", "ManageServers", "Feature"]
+                                },
+                                "currentPermissions": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "example": ["Favourite", "ManageServers", "Feature"]
+                                },
+                                "missingPermissions": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "example": ["Favourite", "ManageServers", "Feature"]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "RateLimited429": {
+                "description": "Too many requests, rate limited.",
+                "headers": {
+                    "RateLimit-Limit": {
+                        "required": true,
+                        "description": "Maximum number of requests per time window.",
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    "RateLimit-Remaining": {
+                        "required": true,
+                        "description": "Number of requests remaining in this time window.",
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    "RateLimit-Reset": {
+                        "required": true,
+                        "description": "Number of seconds until this time window ends.",
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    "Retry-After": {
+                        "required": true,
+                        "description": "Length of time window in seconds.",
+                        "schema": {
+                            "type": "number"
+                        }
+                    }
+                }
+            },
+            "NotImplemented501": {
+                "description": "This endpoint requires a database, which has not been configured nor provided to the handler."
+            }
+        },
+        "parameters": {},
+        "securitySchemes": {
+            "siteToken": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT",
+                "description": "JWT signed by server, contains Discord access token, refresh token and user ID."
+            },
+            "rateLimitBypassToken": {
+                "type": "apiKey",
+                "description": "Token for bypassing rate limits.",
+                "name": "RateLimit-Bypass-Token",
+                "in": "header"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Miscellaneous",
+            "description": "Miscellaneous functionality."
+        },
+        {
+            "name": "User Management",
+            "description": "Managing and fetching users."
+        },
+        {
+            "name": "Server Management",
+            "description": "Managing servers."
+        },
+        {
+            "name": "Auth",
+            "description": "Logging in, logging out, and refreshing."
+        },
+        {
+            "name": "Server Listing",
+            "description": "Fetching and searching servers."
+        }
+    ]
+}

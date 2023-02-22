@@ -17,3 +17,6 @@ export type ISOString = string;
  * @example '909645967081476147'
  */
 export type DiscordIdString = Snowflake;
+
+/** The shape of a parsed JSON object. */
+export type JSONValue = string | number | boolean | null | { [x: string]: JSONValue } | Array<JSONValue>;

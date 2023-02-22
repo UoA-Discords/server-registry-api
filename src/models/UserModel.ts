@@ -1,4 +1,4 @@
 import { Collection } from 'mongodb';
-import { User } from '../interfaces/User';
+import { User } from '../types/User';
 
-export type UserModel = Collection<User>;
+export type UserModel = Collection<User<true>>;
