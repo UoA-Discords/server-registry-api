@@ -1,46 +1,18 @@
-import { APIUser } from 'discord-api-types/v10';
+// functions for updating/setting the Discord data of a user
+
+import { APIUser } from 'discord-api-types/payloads/v10/user';
 import { StrictUpdateFilter } from 'mongodb';
 import { defaultUser } from '../../defaults/defaultUser';
 import { AuthError } from '../../errors/AuthError';
 import { UserModel } from '../../models/UserModel';
 import { User } from '../../types/User';
-import { UserPermissions } from '../../types/User/UserPermissions';
-import { DiscordIdString } from '../../types/Utility';
 
 /**
- * Checks the provided set of permissions includes the target one(s).
- * @param {User | UserPermissions} currentPermissions Object to check permissions of.
- * @param {UserPermissions} requiredPermissions Permissions that are all required.
- *
- * To check multiple permissions, simply bitwise OR them.
+ * Creates a new user in the database using the default values.
+ * @returns {Promise<User<true>>} Returns the created user.
  */
-export function hasPermission(
-    currentPermissions: User<boolean> | UserPermissions,
-    requiredPermissions: UserPermissions,
-): boolean {
-    if (typeof currentPermissions === 'number') {
-        return (currentPermissions & requiredPermissions) === requiredPermissions;
-    }
-    return (currentPermissions.permissions & requiredPermissions) === requiredPermissions;
-}
-
-/** Splits a bitfield of user permissions into its individual components. */
-export function splitPermissions(permissions: UserPermissions): UserPermissions[] {
-    const values: UserPermissions[] = [];
-    while (permissions) {
-        const bit = permissions & (~permissions + 1);
-        values.push(bit);
-        permissions ^= bit;
-    }
-    return values;
-}
-
-export async function getUserbyId(userModel: UserModel, id: DiscordIdString): Promise<User<true> | null> {
-    return await userModel.findOne({ _id: id });
-}
-
 export async function registerUser(userModel: UserModel, discordUserData: APIUser, ip: string): Promise<User<true>> {
-    const now = new Date().toString();
+    const now = new Date().toISOString();
 
     const newUser: User<true> = {
         ...defaultUser,
@@ -62,6 +34,11 @@ export async function registerUser(userModel: UserModel, discordUserData: APIUse
     return newUser;
 }
 
+/**
+ * Updates the Discord user data and meta data of an existing user.
+ * @returns {Promise<User<true>>} Returns the updated user.
+ * @throws Throws an {@link AuthError} if the user does not exist.
+ */
 export async function updateUserDiscordData(
     userModel: UserModel,
     discordUserData: APIUser,

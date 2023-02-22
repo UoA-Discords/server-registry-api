@@ -1,7 +1,7 @@
 import { JsonWebTokenError, verify, TokenExpiredError, sign } from 'jsonwebtoken';
 import { AuthError } from '../../errors/AuthError';
 import { mockConfig } from '../../tests/mockConfig';
-import { mockOAuthResult } from '../../tests/mockOAuthResult';
+import { mockedOAuthResult } from '../../tests/mockedOAuthResult';
 import { SiteTokenPayload } from '../../types/Auth/SiteTokenPayload';
 import { makeSiteToken, validateSiteToken } from './siteToken';
 
@@ -21,12 +21,12 @@ describe('makeSiteToken', () => {
     });
 
     it('signs the payload correctly', () => {
-        const token = makeSiteToken(config, mockOAuthResult, 'test id');
+        const token = makeSiteToken(config, mockedOAuthResult, 'test id');
 
         expect(verify(token, config.jwtSecret)).toMatchObject<SiteTokenPayload>({
             id: 'test id',
-            access_token: mockOAuthResult.access_token,
-            refresh_token: mockOAuthResult.refresh_token,
+            access_token: mockedOAuthResult.access_token,
+            refresh_token: mockedOAuthResult.refresh_token,
         });
     });
 });
@@ -155,12 +155,12 @@ describe('validateSiteToken', () => {
         mockedSign.mockImplementationOnce(jwt.sign);
         mockedVerify.mockImplementationOnce(jwt.verify);
 
-        const validToken = makeSiteToken(config, mockOAuthResult, 'test id');
+        const validToken = makeSiteToken(config, mockedOAuthResult, 'test id');
 
         expect(validateSiteToken(config, validToken)).toMatchObject<SiteTokenPayload>({
             id: 'test id',
-            access_token: mockOAuthResult.access_token,
-            refresh_token: mockOAuthResult.refresh_token,
+            access_token: mockedOAuthResult.access_token,
+            refresh_token: mockedOAuthResult.refresh_token,
         });
     });
 
@@ -168,18 +168,18 @@ describe('validateSiteToken', () => {
         mockedSign.mockImplementationOnce(jwt.sign);
         mockedVerify.mockImplementationOnce(jwt.verify).mockImplementationOnce(jwt.verify);
 
-        const validToken = makeSiteToken(config, mockOAuthResult, 'test id');
+        const validToken = makeSiteToken(config, mockedOAuthResult, 'test id');
 
         expect(validateSiteToken(config, `BEArER ${validToken}`)).toMatchObject<SiteTokenPayload>({
             id: 'test id',
-            access_token: mockOAuthResult.access_token,
-            refresh_token: mockOAuthResult.refresh_token,
+            access_token: mockedOAuthResult.access_token,
+            refresh_token: mockedOAuthResult.refresh_token,
         });
 
         expect(validateSiteToken(config, `ToKeN ${validToken}`)).toMatchObject<SiteTokenPayload>({
             id: 'test id',
-            access_token: mockOAuthResult.access_token,
-            refresh_token: mockOAuthResult.refresh_token,
+            access_token: mockedOAuthResult.access_token,
+            refresh_token: mockedOAuthResult.refresh_token,
         });
     });
 

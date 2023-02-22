@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { UserService } from '../services';
+import { UserService } from '../services/UserService';
 import { UserPermissions } from '../types/User/UserPermissions';
 import { SiteError } from './SiteError';
 

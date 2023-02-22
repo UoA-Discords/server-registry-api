@@ -1,10 +1,10 @@
 import express from 'express';
 import request from 'supertest';
 import { siteErrorHandler } from '../middleware/siteErrorHandler';
-import { makeSiteToken } from '../services/AuthService/siteToken';
+import { AuthService } from '../services/AuthService';
 import { mockConfig } from '../tests/mockConfig';
-import { mockOAuthResult } from '../tests/mockOAuthResult';
-import { mockUser } from '../tests/mockUser';
+import { mockedOAuthResult } from '../tests/mockedOAuthResult';
+import { mockedUser } from '../tests/mockedUser';
 import { AppModels } from '../types/Database/AppModels';
 import { EndpointProvider, AuthScopes, DatabaseScopes } from '../types/Express/EndpointProvider';
 import { User } from '../types/User';
@@ -100,7 +100,11 @@ describe('withScopes', () => {
     });
 
     describe('auth scopes', () => {
-        const dummyAuthentication = `Bearer ${makeSiteToken(config, mockOAuthResult, 'withScopes test user id')}`;
+        const dummyAuthentication = `Bearer ${AuthService.makeSiteToken(
+            config,
+            mockedOAuthResult,
+            'withScopes test user id',
+        )}`;
 
         describe("scope: 'None'", () => {
             it("doesn't authenticate if an authorization header is provided", async () => {
@@ -336,7 +340,7 @@ describe('withScopes', () => {
 
                 it('functions when permissions are valid or invalid', async () => {
                     const tempUser: User<true> = {
-                        ...mockUser,
+                        ...mockedUser,
                         permissions:
                             UserPermissions.Favourite | UserPermissions.Feature | UserPermissions.MakeApplications,
                     };

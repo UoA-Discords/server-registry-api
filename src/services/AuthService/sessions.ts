@@ -1,9 +1,9 @@
 // functions for creating, terminating, and prolonging user sessions
 
-import { UserService } from '..';
 import { UserModel } from '../../models/UserModel';
 import { LoginOrSignupResponse } from '../../types/Auth/LoginOrSignupResponse';
 import { Config } from '../../types/Config';
+import { UserService } from '../UserService';
 import { getAccessToken, getAssociatedUser, refreshAccessToken, revokeAccessToken } from './oAuthToken';
 import { makeSiteToken } from './siteToken';
 
@@ -18,23 +18,22 @@ export async function loginOrSignup(
 
     const discordUser = await getAssociatedUser(discordAuth.access_token);
 
-    const user = await UserService.getUserbyId(userModel, discordUser.id);
-
-    if (user === null) {
-        // user did not exist previously = signup
+    try {
+        await UserService.getUserbyId(userModel, discordUser.id);
+        // didn't error, meaning the user exists and is logging back in
+        return {
+            user: await UserService.updateUserDiscordData(userModel, discordUser, ip),
+            discordAuth,
+            siteAuth: makeSiteToken(config, discordAuth, discordUser.id),
+        };
+    } catch (error) {
+        // errors if the user doesn't exist, so a signup should happen
         return {
             user: await UserService.registerUser(userModel, discordUser, ip),
             discordAuth,
             siteAuth: makeSiteToken(config, discordAuth, discordUser.id),
         };
     }
-
-    // otherwise it is an existing user logging back in
-    return {
-        user: await UserService.updateUserDiscordData(userModel, discordUser, ip),
-        discordAuth,
-        siteAuth: makeSiteToken(config, discordAuth, discordUser.id),
-    };
 }
 
 export async function refresh(

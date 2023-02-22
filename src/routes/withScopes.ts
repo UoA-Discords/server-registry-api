@@ -1,8 +1,7 @@
 import { Request } from 'express';
-import { AuthError } from '../errors/AuthError';
 import { ForbiddenError } from '../errors/ForbiddenError';
-import { AuthService } from '../services';
-import { hasPermission } from '../services/User/UserService';
+import { AuthService } from '../services/AuthService';
+import { UserService } from '../services/UserService';
 import { SiteTokenPayload } from '../types/Auth/SiteTokenPayload';
 import { Config } from '../types/Config';
 import { AppModels } from '../types/Database/AppModels';
@@ -57,9 +56,7 @@ export function withScopes<T extends EndpointProvider<AuthScopes, DatabaseScopes
                 try {
                     const auth = withOptionalAuth(config, req);
                     if (auth === null) return provider.applyToRoute({ config, auth, user: null, db })(req, res, next);
-                    const user = await models.users.findOne({ _id: auth.id });
-                    if (user === null)
-                        throw new AuthError('Account Not Found', 'Your account was most likely deleted.');
+                    const user = await UserService.getUserbyId(models.users, auth.id);
                     return provider.applyToRoute({ config, auth, user, db })(req, res, next);
                 } catch (error) {
                     return next(error);
@@ -70,10 +67,11 @@ export function withScopes<T extends EndpointProvider<AuthScopes, DatabaseScopes
             return async (req, res, next) => {
                 try {
                     const auth = AuthService.validateSiteToken(config, req.get('Authorization'));
-                    const user = await models.users.findOne({ _id: auth.id });
-                    if (user === null)
-                        throw new AuthError('Account Not Found', 'Your account was most likely deleted.');
-                    if (!!provider.permissionsRequired && !hasPermission(user, provider.permissionsRequired)) {
+                    const user = await UserService.getUserbyId(models.users, auth.id);
+                    if (
+                        !!provider.permissionsRequired &&
+                        !UserService.hasPermission(user, provider.permissionsRequired)
+                    ) {
                         throw new ForbiddenError(provider.permissionsRequired, user.permissions);
                     }
                     return provider.applyToRoute({ config, auth, user, db })(req, res, next);

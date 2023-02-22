@@ -1,6 +1,6 @@
 // functions that related to site tokens (JWTs)
 
-import { RESTPostOAuth2AccessTokenResult } from 'discord-api-types/v10';
+import { RESTPostOAuth2AccessTokenResult } from 'discord-api-types/rest/v10/oauth2';
 import { sign, verify, JsonWebTokenError, TokenExpiredError } from 'jsonwebtoken';
 import { AuthError } from '../../errors/AuthError';
 import { SiteTokenPayload } from '../../types/Auth/SiteTokenPayload';
