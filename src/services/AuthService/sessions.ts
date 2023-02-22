@@ -1,9 +1,11 @@
+// functions for creating, terminating, and prolonging user sessions
+
 import { UserService } from '..';
 import { UserModel } from '../../models/UserModel';
-import { Config } from '../../types/Config';
 import { LoginOrSignupResponse } from '../../types/Auth/LoginOrSignupResponse';
-import { makeSiteToken } from './siteToken';
+import { Config } from '../../types/Config';
 import { getAccessToken, getAssociatedUser, refreshAccessToken, revokeAccessToken } from './oAuthToken';
+import { makeSiteToken } from './siteToken';
 
 export async function loginOrSignup(
     config: Config,

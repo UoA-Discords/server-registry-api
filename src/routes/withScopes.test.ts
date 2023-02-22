@@ -1,7 +1,7 @@
 import express from 'express';
 import request from 'supertest';
 import { siteErrorHandler } from '../middleware/siteErrorHandler';
-import { makeSiteToken } from '../services/Auth/siteToken';
+import { makeSiteToken } from '../services/AuthService/siteToken';
 import { mockConfig } from '../tests/mockConfig';
 import { mockOAuthResult } from '../tests/mockOAuthResult';
 import { mockUser } from '../tests/mockUser';
