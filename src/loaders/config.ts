@@ -1,4 +1,3 @@
-import { readFileSync } from 'fs';
 import { defaultConfig } from '../defaults/defaultConfig';
 import { Config, ImportedConfig } from '../types/Config';
 
@@ -6,16 +5,13 @@ import { Config, ImportedConfig } from '../types/Config';
  * Imports and transforms values from `config.json`, using the {@link defaultConfig default config} values as a
  * fallback for any missing non-required values.
  *
- * @param {boolean} [useTestConfig=false] Whether to take values from `config.test.json` instead of `config.json`.
- *
  * @throws Throws an error if required values (`mongoURI`, `discordClientSecret`, `discordClientId`) are missing.
  */
-export function loadConfig(useTestConfig: boolean = false): Config {
+export function loadConfig(): Config {
     /** Config that we will take values from when forming the final globally-used {@link Config} object. */
     // we use `readFileSync` since it is easier to mock than `require()`
-    const partialConfig: ImportedConfig = useTestConfig
-        ? JSON.parse(readFileSync('config.test.json', 'utf-8'))
-        : require('../../config.json');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const partialConfig: ImportedConfig = require('../../config.json');
 
     if (partialConfig.jwtSecret === undefined) {
         console.warn('Warning: No jwtSecret defined in config, sessions will not persist between resets!');
