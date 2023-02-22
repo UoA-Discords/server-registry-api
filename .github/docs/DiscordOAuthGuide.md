@@ -12,15 +12,12 @@ Now you can put the client ID and secret into `config.json`, done!
 
 # Using Discord OAuth
 
-1. Generate a Discord authorization URL, there are 2 ways to do this:
+Generate a Discord authorization URL using the Discord URL Generator:
 
-    - Use the http://localhost:5000/makeLoginLink endpoint.
-    - Use the Discord URL Generator:
-      ![image](../images/Discord_1.png)
+![image](../images/Discord_1.png)
 
-2. Once you get redirected to wherever you set the `REDIRECT_URI` to, the `state` and `code` values will be in the URL query parameters.
+1. Once you get redirected to wherever you set the `REDIRECT_URI` to, the `state` and `code` values will be in the URL query parameters.
 
     - `state` should be used client-side to prevent CSRF attacks.
-        - This is why it's not recommended to use the http://localhost:5000/makeLoginLink endpoint outside of testing, since it generates `state` server-side instead of client-side.
     - `code` is used to send in a POST request to http://localhost:5000/login to be upgraded into a full access token, logging the user into the site.
         - The request body should also include the `REDIRECT_URI` used in step 1.
