@@ -1,7 +1,7 @@
 import express from 'express';
 import request from 'supertest';
 import { siteErrorHandler } from '../middleware/siteErrorHandler';
-import { AuthService } from '../services';
+import { makeSiteToken } from '../services/Auth/siteToken';
 import { mockConfig } from '../tests/mockConfig';
 import { mockOAuthResult } from '../tests/mockOAuthResult';
 import { mockUser } from '../tests/mockUser';
@@ -100,11 +100,7 @@ describe('withScopes', () => {
     });
 
     describe('auth scopes', () => {
-        const dummyAuthentication = `Bearer ${AuthService.makeSiteToken(
-            config,
-            mockOAuthResult,
-            'withScopes test user id',
-        )}`;
+        const dummyAuthentication = `Bearer ${makeSiteToken(config, mockOAuthResult, 'withScopes test user id')}`;
 
         describe("scope: 'None'", () => {
             it("doesn't authenticate if an authorization header is provided", async () => {
