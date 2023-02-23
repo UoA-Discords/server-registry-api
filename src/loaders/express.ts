@@ -10,6 +10,7 @@ import { validatorErrorHandler } from '../middleware/validatorErrorHandler';
 import { siteErrorHandler } from '../middleware/siteErrorHandler';
 import { AppModels } from '../types/Database/AppModels';
 import { applyMiscellaneousRoutes } from '../routes/miscellaneousRoutes';
+import { applyAuthRoutes } from '../routes/authRoutes';
 
 export function loadExpress(config: Config, models: AppModels): Express {
     const app = express();
@@ -35,6 +36,7 @@ export function loadExpress(config: Config, models: AppModels): Express {
     app.use(validatorMiddleware(config));
     app.use(validatorErrorHandler(config));
 
+    applyAuthRoutes(app, config, models);
     applyMiscellaneousRoutes(app, config, models);
 
     // post-route middleware (e.g. error catching)

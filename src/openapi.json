@@ -58,7 +58,6 @@
                             "application/json": {
                                 "schema": {
                                     "type": "object",
-                                    "additionalProperties": false,
                                     "properties": {
                                         "startTime": {
                                             "$ref": "#/components/schemas/ISOString"
@@ -71,7 +70,8 @@
                                             "$ref": "#/components/schemas/ISOString"
                                         }
                                     },
-                                    "required": ["startTime", "version", "receivedRequest"]
+                                    "required": ["startTime", "version", "receivedRequest"],
+                                    "additionalProperties": false
                                 }
                             }
                         }
@@ -141,13 +141,104 @@
                     }
                 }
             }
+        },
+        "/login": {
+            "post": {
+                "tags": ["Auth"],
+                "security": [{}, { "rateLimitBypassToken": [] }],
+                "operationId": "postLogin",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "code": {
+                                        "type": "string"
+                                    },
+                                    "redirect_uri": {
+                                        "type": "string",
+                                        "example": "http://localhost:5000/static/discordOAuth"
+                                    }
+                                },
+                                "required": ["code", "redirect_uri"],
+                                "additionalProperties": false
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful login response.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LoginOrSignupResponse"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/RateLimited429"
+                    },
+                    "502": {
+                        "$ref": "#/components/responses/SecondaryRequestError502"
+                    }
+                }
+            }
+        },
+        "/refresh": {
+            "get": {
+                "tags": ["Auth"],
+                "security": [{ "siteToken": [], "rateLimitBypassToken": [] }, { "siteToken": [] }],
+                "operationId": "getRefresh",
+                "responses": {
+                    "200": {
+                        "description": "Successful refresh response.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LoginOrSignupResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthError401"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/RateLimited429"
+                    },
+                    "502": {
+                        "$ref": "#/components/responses/SecondaryRequestError502"
+                    }
+                }
+            }
+        },
+        "/logout": {
+            "get": {
+                "tags": ["Auth"],
+                "security": [{ "siteToken": [], "rateLimitBypassToken": [] }, { "siteToken": [] }],
+                "operationId": "getLogout",
+                "responses": {
+                    "200": {
+                        "description": "Successfully logged out."
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/RateLimited429"
+                    },
+                    "502": {
+                        "$ref": "#/components/responses/SecondaryRequestError502"
+                    }
+                }
+            }
         }
     },
     "components": {
         "schemas": {
             "LoginOrSignupResponse": {
                 "type": "object",
-                "additionalProperties": false,
                 "properties": {
                     "user": {
                         "$ref": "#/components/schemas/User"
@@ -155,7 +246,6 @@
                     "discordAuth": {
                         "description": "[https://discord.com/developers/docs/topics/oauth2#authorization-code-grant-access-token-response](https://discord.com/developers/docs/topics/oauth2#authorization-code-grant-access-token-response)",
                         "type": "object",
-                        "additionalProperties": false,
                         "properties": {
                             "access_token": {
                                 "type": "string"
@@ -176,18 +266,19 @@
                                 "description": "The scopes that were granted to the application by the user."
                             }
                         },
-                        "required": ["access_token", "token_type", "expires_in", "refresh_token", "scope"]
+                        "required": ["access_token", "token_type", "expires_in", "refresh_token", "scope"],
+                        "additionalProperties": false
                     },
                     "siteAuth": {
                         "type": "string",
                         "description": "Signed JsonWebToken (JWT) to use in authorization header for elevated requests to the site."
                     }
                 },
-                "required": ["user", "discordAuth", "siteAuth"]
+                "required": ["user", "discordAuth", "siteAuth"],
+                "additionalProperties": false
             },
             "SiteTokenPayload": {
                 "type": "object",
-                "additionalProperties": false,
                 "description": "Shape of the payload that is stored in the body of a site token (a signed JWT).<br />Site tokens are provided in the `Authorization` header of any elevated requests.",
                 "properties": {
                     "id": {
@@ -202,7 +293,8 @@
                         "description": "The Discord OAuth2 refresh token of the requester.<br />This can be used to extend the user's current OAuth session."
                     }
                 },
-                "required": ["id", "access_token", "refresh_token"]
+                "required": ["id", "access_token", "refresh_token"],
+                "additionalProperties": false
             },
             "EntryFacultyTags": {
                 "type": "integer",
@@ -212,7 +304,6 @@
             },
             "ServerChangeRecord": {
                 "type": "object",
-                "additionalProperties": false,
                 "properties": {
                     "verb": {
                         "$ref": "#/components/schemas/ServerStatusAction"
@@ -228,7 +319,8 @@
                         "nullable": true
                     }
                 },
-                "required": ["verb", "by", "at", "reason"]
+                "required": ["verb", "by", "at", "reason"],
+                "additionalProperties": false
             },
             "ServerStatus": {
                 "type": "integer",
@@ -242,15 +334,12 @@
             },
             "User": {
                 "type": "object",
-                "additionalProperties": false,
                 "properties": {
                     "_id": {
                         "$ref": "#/components/schemas/DiscordIDString"
                     },
                     "discord": {
                         "type": "object",
-                        "additionalProperties": false,
-                        "required": ["username", "discriminator", "avatar"],
                         "properties": {
                             "username": {
                                 "type": "string"
@@ -262,15 +351,15 @@
                                 "type": "string",
                                 "nullable": true
                             }
-                        }
+                        },
+                        "required": ["username", "discriminator", "avatar"],
+                        "additionalProperties": false
                     },
                     "permissions": {
                         "$ref": "#/components/schemas/UserPermissions"
                     },
                     "metaData": {
                         "type": "object",
-                        "additionalProperties": false,
-                        "required": ["latestIp", "registered", "lastLoginOrRefresh"],
                         "properties": {
                             "latestIp": {
                                 "type": "string",
@@ -282,12 +371,14 @@
                             "lastLoginOrRefresh": {
                                 "$ref": "#/components/schemas/ISOString"
                             }
-                        }
+                        },
+                        "required": ["latestIp", "registered", "lastLoginOrRefresh"],
+                        "additionalProperties": false
                     },
                     "favouriteServer": {
                         "type": "string",
-                        "allOf": [{ "$ref": "#/components/schemas/DiscordIDString" }],
-                        "nullable": true
+                        "nullable": true,
+                        "description": "Nullable Discord ID string."
                     },
                     "submissions": {
                         "type": "object"
@@ -311,11 +402,11 @@
                     "submissions",
                     "actions",
                     "permissionsLog"
-                ]
+                ],
+                "additionalProperties": false
             },
             "UserChangeRecord": {
                 "type": "object",
-                "additionalProperties": false,
                 "properties": {
                     "oldUserPermissions": {
                         "$ref": "#/components/schemas/UserPermissions"
@@ -331,7 +422,8 @@
                         "nullable": true
                     }
                 },
-                "required": ["oldUserPermissions", "by", "at", "reason"]
+                "required": ["oldUserPermissions", "by", "at", "reason"],
+                "additionalProperties": false
             },
             "UserPermissions": {
                 "type": "integer",
@@ -357,7 +449,6 @@
                     "application/json": {
                         "schema": {
                             "type": "object",
-                            "additionalProperties": false,
                             "properties": {
                                 "message": {
                                     "type": "string",
@@ -368,7 +459,8 @@
                                     "example": "Missing refresh_token (expected string, got undefined)."
                                 }
                             },
-                            "required": ["message", "hint"]
+                            "required": ["message", "hint"],
+                            "additionalProperties": false
                         }
                     }
                 }
@@ -379,7 +471,6 @@
                     "application/json": {
                         "schema": {
                             "type": "object",
-                            "additionalProperties": false,
                             "properties": {
                                 "requiredPermissions": {
                                     "type": "array",
@@ -403,7 +494,8 @@
                                     "example": ["Favourite", "ManageServers", "Feature"]
                                 }
                             },
-                            "required": ["requiredPermissions", "currentPermissions", "missingPermissions"]
+                            "required": ["requiredPermissions", "currentPermissions", "missingPermissions"],
+                            "additionalProperties": false
                         }
                     }
                 }
@@ -443,6 +535,34 @@
             },
             "NotImplemented501": {
                 "description": "This endpoint requires a database, which has not been configured nor provided to the handler."
+            },
+            "SecondaryRequestError502": {
+                "description": "A call to another API made by the server failed.",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "example": "Failed to refresh access token"
+                                },
+                                "hint": {
+                                    "type": "string",
+                                    "example": "Supplied refresh token is invalid."
+                                },
+                                "receivedStatusCode": {
+                                    "anyOf": [
+                                        { "type": "integer", "description": "Received HTTP status code." },
+                                        { "type": "string", "default": "Unknown" }
+                                    ]
+                                }
+                            },
+                            "required": ["message", "hint", "receivedStatusCode"],
+                            "additionalProperties": false
+                        }
+                    }
+                }
             }
         },
         "parameters": {},
