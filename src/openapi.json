@@ -102,6 +102,45 @@
                     }
                 }
             }
+        },
+        "/spec": {
+            "get": {
+                "tags": ["Miscellaneous"],
+                "responses": {
+                    "200": {
+                        "description": "OpenAPI spec.",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                }
+            }
+        },
+        "/api-docs": {
+            "get": {
+                "tags": ["Miscellaneous"],
+                "responses": {
+                    "200": {
+                        "description": "This document.",
+                        "content": {
+                            "text/html": {}
+                        }
+                    }
+                }
+            }
+        },
+        "/static": {
+            "get": {
+                "tags": ["Miscellaneous"],
+                "responses": {
+                    "200": {
+                        "description": "List of static routes.",
+                        "content": {
+                            "text/html": {}
+                        }
+                    }
+                }
+            }
         }
     },
     "components": {
