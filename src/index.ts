@@ -18,8 +18,20 @@ async function startServer() {
 
     const app = loadExpress(config, appModels);
 
-    app.listen(config.port, () => {
-        console.log(`Listening on port ${config.port} (${app.get('env')})`);
+    const server = app.listen(config.port, () => {
+        const _addr = server.address();
+
+        let address, port;
+
+        if (typeof _addr !== 'string' && !!_addr) {
+            address = _addr.address.replace('::', 'localhost');
+            port = _addr.port;
+        } else {
+            address = 'unknown';
+            port = config.port;
+        }
+
+        console.log(`Listening on http://${address}:${port} (${app.get('env')})`);
     });
 }
 
