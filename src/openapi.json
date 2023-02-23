@@ -59,7 +59,6 @@
                                 "schema": {
                                     "type": "object",
                                     "additionalProperties": false,
-                                    "required": ["startTime", "version", "receivedRequest"],
                                     "properties": {
                                         "startTime": {
                                             "$ref": "#/components/schemas/ISOString"
@@ -71,7 +70,8 @@
                                         "receivedRequest": {
                                             "$ref": "#/components/schemas/ISOString"
                                         }
-                                    }
+                                    },
+                                    "required": ["startTime", "version", "receivedRequest"]
                                 }
                             }
                         }
@@ -106,6 +106,200 @@
     },
     "components": {
         "schemas": {
+            "LoginOrSignupResponse": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "user": {
+                        "$ref": "#/components/schemas/User"
+                    },
+                    "discordAuth": {
+                        "description": "[https://discord.com/developers/docs/topics/oauth2#authorization-code-grant-access-token-response](https://discord.com/developers/docs/topics/oauth2#authorization-code-grant-access-token-response)",
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                            "access_token": {
+                                "type": "string"
+                            },
+                            "token_type": {
+                                "type": "string",
+                                "description": "The type of token provided (Bearer)."
+                            },
+                            "expires_in": {
+                                "type": "integer",
+                                "description": "The number of seconds until the token expires."
+                            },
+                            "refresh_token": {
+                                "type": "string"
+                            },
+                            "scope": {
+                                "type": "string",
+                                "description": "The scopes that were granted to the application by the user."
+                            }
+                        },
+                        "required": ["access_token", "token_type", "expires_in", "refresh_token", "scope"]
+                    },
+                    "siteAuth": {
+                        "type": "string",
+                        "description": "Signed JsonWebToken (JWT) to use in authorization header for elevated requests to the site."
+                    }
+                },
+                "required": ["user", "discordAuth", "siteAuth"]
+            },
+            "SiteTokenPayload": {
+                "type": "object",
+                "additionalProperties": false,
+                "description": "Shape of the payload that is stored in the body of a site token (a signed JWT).<br />Site tokens are provided in the `Authorization` header of any elevated requests.",
+                "properties": {
+                    "id": {
+                        "$ref": "#/components/schemas/DiscordIDString"
+                    },
+                    "access_token": {
+                        "type": "string",
+                        "description": "The Discord OAuth2 access token of the requester.<br />This is used to make elevated requests to the Discord API on behalf of this user.<br />Since we only require the 'Identify' scope, the only requests we can make are to:<br />- Terminate the current OAuth session (revoke).<br />- Get basic user info (ID, username, profile picture, etc...)"
+                    },
+                    "refresh_token": {
+                        "type": "string",
+                        "description": "The Discord OAuth2 refresh token of the requester.<br />This can be used to extend the user's current OAuth session."
+                    }
+                },
+                "required": ["id", "access_token", "refresh_token"]
+            },
+            "EntryFacultyTags": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4095,
+                "description": "Tags for servers that describe the general faculty/faculties they pertain to.<br />Servers can have any combination of these tags, as long as they are somewhat relevant.<br />These values (mostly) come from [here](https://www.auckland.ac.nz/en/study/our-faculties.html)."
+            },
+            "ServerChangeRecord": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "verb": {
+                        "$ref": "#/components/schemas/ServerStatusAction"
+                    },
+                    "by": {
+                        "$ref": "#/components/schemas/DiscordIDString"
+                    },
+                    "at": {
+                        "$ref": "#/components/schemas/ISOString"
+                    },
+                    "reason": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                },
+                "required": ["verb", "by", "at", "reason"]
+            },
+            "ServerStatus": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4
+            },
+            "ServerStatusAction": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 7
+            },
+            "User": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "_id": {
+                        "$ref": "#/components/schemas/DiscordIDString"
+                    },
+                    "discord": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["username", "discriminator", "avatar"],
+                        "properties": {
+                            "username": {
+                                "type": "string"
+                            },
+                            "discriminator": {
+                                "type": "string"
+                            },
+                            "avatar": {
+                                "type": "string",
+                                "nullable": true
+                            }
+                        }
+                    },
+                    "permissions": {
+                        "$ref": "#/components/schemas/UserPermissions"
+                    },
+                    "metaData": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["latestIp", "registered", "lastLoginOrRefresh"],
+                        "properties": {
+                            "latestIp": {
+                                "type": "string",
+                                "nullable": true
+                            },
+                            "registered": {
+                                "$ref": "#/components/schemas/ISOString"
+                            },
+                            "lastLoginOrRefresh": {
+                                "$ref": "#/components/schemas/ISOString"
+                            }
+                        }
+                    },
+                    "favouriteServer": {
+                        "type": "string",
+                        "allOf": [{ "$ref": "#/components/schemas/DiscordIDString" }],
+                        "nullable": true
+                    },
+                    "submissions": {
+                        "type": "object"
+                    },
+                    "actions": {
+                        "type": "object"
+                    },
+                    "permissionsLog": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/UserChangeRecord"
+                        }
+                    }
+                },
+                "required": [
+                    "_id",
+                    "discord",
+                    "permissions",
+                    "metaData",
+                    "favouriteServer",
+                    "submissions",
+                    "actions",
+                    "permissionsLog"
+                ]
+            },
+            "UserChangeRecord": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "oldUserPermissions": {
+                        "$ref": "#/components/schemas/UserPermissions"
+                    },
+                    "by": {
+                        "$ref": "#/components/schemas/DiscordIDString"
+                    },
+                    "at": {
+                        "$ref": "#/components/schemas/ISOString"
+                    },
+                    "reason": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                },
+                "required": ["oldUserPermissions", "by", "at", "reason"]
+            },
+            "UserPermissions": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 127,
+                "description": "User permissions bitfield."
+            },
             "ISOString": {
                 "type": "string",
                 "description": "A string in ISO format, used to store dates.",
@@ -125,7 +319,6 @@
                         "schema": {
                             "type": "object",
                             "additionalProperties": false,
-                            "required": ["message", "hint"],
                             "properties": {
                                 "message": {
                                     "type": "string",
@@ -135,7 +328,8 @@
                                     "type": "string",
                                     "example": "Missing refresh_token (expected string, got undefined)."
                                 }
-                            }
+                            },
+                            "required": ["message", "hint"]
                         }
                     }
                 }
@@ -147,7 +341,6 @@
                         "schema": {
                             "type": "object",
                             "additionalProperties": false,
-                            "required": ["requiredPermissions", "currentPermissions", "missingPermissions"],
                             "properties": {
                                 "requiredPermissions": {
                                     "type": "array",
@@ -170,7 +363,8 @@
                                     },
                                     "example": ["Favourite", "ManageServers", "Feature"]
                                 }
-                            }
+                            },
+                            "required": ["requiredPermissions", "currentPermissions", "missingPermissions"]
                         }
                     }
                 }
