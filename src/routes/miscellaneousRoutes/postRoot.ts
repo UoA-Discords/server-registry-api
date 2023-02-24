@@ -1,7 +1,7 @@
 import { AuthScopes, EndpointProvider } from '../../types/Express/EndpointProvider';
 import { ISOString } from '../../types/Utility';
 
-export interface GetRootResponse {
+interface GetRootResponse {
     startTime: ISOString;
     version: string;
     receivedRequest: ISOString;

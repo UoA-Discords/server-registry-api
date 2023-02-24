@@ -1,7 +1,7 @@
 import { LoginOrSignupResponse } from '../../types/Auth/LoginOrSignupResponse';
 import { AuthScopes, EndpointProvider } from '../../types/Express/EndpointProvider';
 
-export interface PostLoginRequest {
+interface PostLoginRequest {
     code: string;
     redirect_uri: string;
 }
