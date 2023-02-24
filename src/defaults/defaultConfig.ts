@@ -16,7 +16,7 @@ export const defaultConfig: Config = {
     /** This default is undocumented in the schema, as it should only be used in testing. */
     mongoURI: 'dummy mongo URI',
 
-    mongoDbName: 'uoa_discords_server_registry_api_default',
+    mongoDbName: 'server_registry_default',
 
     /**
      * This ensures cryptographic security, but also means it will change every time the server restarts, meaning user
