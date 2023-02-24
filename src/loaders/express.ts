@@ -8,11 +8,11 @@ import { rateLimitingMiddleware } from '../middleware/rateLimitingMiddleware';
 import { validatorMiddleware } from '../middleware/validatorMiddleware';
 import { validatorErrorHandler } from '../middleware/validatorErrorHandler';
 import { siteErrorHandler } from '../middleware/siteErrorHandler';
-import { AppModels } from '../types/Database/AppModels';
 import { applyMiscellaneousRoutes } from '../routes/miscellaneousRoutes';
 import { applyAuthRoutes } from '../routes/authRoutes';
+import { AppServices } from '../types/Services/AppServices';
 
-export function loadExpress(config: Config, models: AppModels): Express {
+export function loadExpress(config: Config, services: AppServices): Express {
     const app = express();
 
     app.set('trust proxy', config.numProxies);
@@ -36,8 +36,8 @@ export function loadExpress(config: Config, models: AppModels): Express {
     app.use(validatorMiddleware(config));
     app.use(validatorErrorHandler(config));
 
-    applyAuthRoutes(app, config, models);
-    applyMiscellaneousRoutes(app, config, models);
+    applyAuthRoutes(app, config, services);
+    applyMiscellaneousRoutes(app, config, services);
 
     // post-route middleware (e.g. error catching)
     app.use(siteErrorHandler(config));

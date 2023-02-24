@@ -1,6 +1,7 @@
 import { loadConfig } from './loaders/config';
 import { loadExpress } from './loaders/express';
 import { loadMongo } from './loaders/mongo';
+import { loadServices } from './loaders/services';
 
 async function startServer() {
     process.on('uncaughtException', (error) => {
@@ -14,9 +15,12 @@ async function startServer() {
     });
 
     const config = loadConfig();
-    const appModels = await loadMongo(config);
 
-    const app = loadExpress(config, appModels);
+    const [userModel] = await loadMongo(config);
+
+    const services = loadServices(config, userModel);
+
+    const app = loadExpress(config, services);
 
     const server = app.listen(config.port, () => {
         const _addr = server.address();
