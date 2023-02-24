@@ -1,5 +1,5 @@
 import { APIUser } from 'discord-api-types/payloads/v10/user';
-import { StrictUpdateFilter } from 'mongodb';
+import { StrictFilter, StrictUpdateFilter } from 'mongodb';
 import { defaultUser } from '../defaults/defaultUser';
 import { AccountDeletedError } from '../errors/AccountDeletedError';
 import { InternalServiceError } from '../errors/InternalServiceError';
@@ -31,12 +31,15 @@ export class UserService {
      * Fetches an array of users.
      * @param {number} page Page number, starts at 0.
      * @param {number} perPage Number of users per page, this is the max length of the array returned.
+     * @param {string} [searchTerm] Optional search term to filter usernames by.
      * @returns {Promise<WithPagination<User<true>>>} Array of users and number of total users present.
      */
-    public async getAllUsers(page: number, perPage: number): Promise<WithPagination<User<true>>> {
+    public async getAllUsers(page: number, perPage: number, searchTerm?: string): Promise<WithPagination<User<true>>> {
+        const filter: StrictFilter<User<true>> = searchTerm ? { $text: { $search: searchTerm } } : {};
+
         const [totalItemCount, items] = await Promise.all([
-            this._userModel.countDocuments(),
-            this._userModel.find({}, { skip: page * perPage, limit: perPage }).toArray(),
+            this._userModel.countDocuments(filter),
+            this._userModel.find(filter, { skip: page * perPage, limit: perPage }).toArray(),
         ]);
 
         return { totalItemCount, items };

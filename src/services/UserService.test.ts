@@ -20,6 +20,10 @@ describe('UserService', () => {
 
         const userService = new UserService({ countDocuments, find } as unknown as UserModel);
 
+        afterEach(() => {
+            jest.clearAllMocks();
+        });
+
         it('makes all required calls to the user model', async () => {
             const res = await userService.getAllUsers(0, 1);
 
@@ -29,7 +33,25 @@ describe('UserService', () => {
             });
 
             expect(countDocuments).toHaveBeenCalledTimes(1);
+            expect(countDocuments).toHaveBeenCalledWith({});
+
             expect(find).toHaveBeenCalledTimes(1);
+            expect(find).toHaveBeenCalledWith({}, { skip: 0, limit: 1 });
+        });
+
+        it('adds a text search when supplied', async () => {
+            const res = await userService.getAllUsers(0, 1, 'test search term');
+
+            expect(res).toEqual({
+                totalItemCount: 1,
+                items: [mockedUser],
+            });
+
+            expect(countDocuments).toHaveBeenCalledTimes(1);
+            expect(countDocuments).toHaveBeenCalledWith({ $text: { $search: 'test search term' } });
+
+            expect(find).toHaveBeenCalledTimes(1);
+            expect(find).toHaveBeenCalledWith({ $text: { $search: 'test search term' } }, { skip: 0, limit: 1 });
         });
     });
 

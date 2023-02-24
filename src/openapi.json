@@ -246,6 +246,15 @@
                     },
                     {
                         "$ref": "#/components/parameters/PerPage"
+                    },
+                    {
+                        "in": "query",
+                        "name": "username",
+                        "schema": {
+                            "type": "string",
+                            "description": "Username to search for."
+                        },
+                        "required": false
                     }
                 ],
                 "responses": {
