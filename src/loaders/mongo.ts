@@ -12,7 +12,10 @@ export async function loadMongo(config: Config): Promise<[UserModel, ServerModel
 
     const db = mongoClient.db(config.mongoDbName);
 
-    // TODO: apply database indexes here
+    const userModel: UserModel = db.collection('users');
+    const serverModel: ServerModel = db.collection('servers');
 
-    return [db.collection('users'), db.collection('servers')];
+    await Promise.all([userModel.createIndex({ 'discord.username': 'text' })]);
+
+    return [userModel, serverModel];
 }
