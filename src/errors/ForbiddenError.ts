@@ -5,22 +5,19 @@ import { SiteError } from './SiteError';
 
 export class ForbiddenError extends SiteError {
     public readonly requiredPermissions: UserPermissions;
-    public readonly currentPermissions: UserPermissions;
-    public readonly missingPermissions: UserPermissions;
+    public readonly message: string | undefined;
 
-    public constructor(requiredPermissions: UserPermissions, currentPermissions: UserPermissions) {
+    public constructor(requiredPermissions: UserPermissions, message?: string) {
         super();
         this.requiredPermissions = requiredPermissions;
-        this.currentPermissions = currentPermissions;
 
-        this.missingPermissions = requiredPermissions & ~currentPermissions;
+        this.message = message;
     }
 
     public send(res: Response): void {
         res.status(403).json({
             requiredPermissions: UserService.splitPermissions(this.requiredPermissions).map((e) => UserPermissions[e]),
-            currentPermissions: UserService.splitPermissions(this.currentPermissions).map((e) => UserPermissions[e]),
-            missingPermissions: UserService.splitPermissions(this.missingPermissions).map((e) => UserPermissions[e]),
+            message: this.message,
         });
     }
 }
