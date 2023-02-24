@@ -14,6 +14,25 @@ const now = new Date();
 jest.useFakeTimers().setSystemTime(now);
 
 describe('UserService', () => {
+    describe('getAllUsers', () => {
+        const countDocuments = jest.fn<number, any>(() => 1);
+        const find = jest.fn<{ toArray: () => User<true>[] }, any>(() => ({ toArray: () => [mockedUser] }));
+
+        const userService = new UserService({ countDocuments, find } as unknown as UserModel);
+
+        it('makes all required calls to the user model', async () => {
+            const res = await userService.getAllUsers(0, 1);
+
+            expect(res).toEqual({
+                totalItemCount: 1,
+                items: [mockedUser],
+            });
+
+            expect(countDocuments).toHaveBeenCalledTimes(1);
+            expect(find).toHaveBeenCalledTimes(1);
+        });
+    });
+
     describe('getUserById', () => {
         const findOne = jest.fn<User<true> | null, any>();
         const userService = new UserService({ findOne } as unknown as UserModel);
