@@ -14,6 +14,25 @@ const now = new Date();
 jest.useFakeTimers().setSystemTime(now);
 
 describe('UserService', () => {
+    describe('getSpecificUsers', () => {
+        const find = jest.fn<{ toArray: () => User<true>[] }, any>(() => ({ toArray: () => [mockedUser] }));
+
+        const userService = new UserService({ find } as unknown as UserModel);
+
+        afterEach(() => {
+            jest.clearAllMocks();
+        });
+
+        it('returns matching users', async () => {
+            const res = await userService.getSpecificUsers([mockedUser._id, 'some other id']);
+
+            expect(res).toEqual([mockedUser]);
+
+            expect(find).toHaveBeenCalledTimes(1);
+            expect(find).toHaveBeenCalledWith({ _id: { $in: [mockedUser._id, 'some other id'] } });
+        });
+    });
+
     describe('getAllUsers', () => {
         const countDocuments = jest.fn<number, any>(() => 1);
         const find = jest.fn<{ toArray: () => User<true>[] }, any>(() => ({ toArray: () => [mockedUser] }));

@@ -291,6 +291,60 @@
                         "$ref": "#/components/responses/RateLimited429"
                     }
                 }
+            },
+            "post": {
+                "tags": ["User Listing"],
+                "security": [
+                    {},
+                    { "siteToken": [] },
+                    { "rateLimitBypassToken": [] },
+                    { "siteToken": [], "rateLimitBypassToken": [] }
+                ],
+                "operationId": "getSpecificUsers",
+                "description": "Gets a list of users.",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "userIds": {
+                                        "type": "array",
+                                        "items": {
+                                            "$ref": "#/components/schemas/DiscordIDString"
+                                        },
+                                        "maxItems": 100
+                                    }
+                                },
+                                "additionalProperties": false,
+                                "required": ["userIds"]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Users array.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/User"
+                                    },
+                                    "maxItems": 100
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthError401"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/RateLimited429"
+                    }
+                }
             }
         }
     },
@@ -647,6 +701,14 @@
                     "maximum": 100,
                     "example": 20,
                     "description": "Number of items per page."
+                },
+                "required": true
+            },
+            "DiscordID": {
+                "in": "path",
+                "name": "id",
+                "schema": {
+                    "$ref": "#/components/schemas/DiscordIDString"
                 },
                 "required": true
             }

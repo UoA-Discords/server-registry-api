@@ -28,6 +28,15 @@ export class UserService {
     }
 
     /**
+     * Fetches an array of users specified by their Discord IDs.
+     * @param {DiscordIdString[]} userIds Discord user IDs of users to fetch.
+     * @returns {Promise<User<true>[]>} Array of users.
+     */
+    public async getSpecificUsers(userIds: DiscordIdString[]): Promise<User<true>[]> {
+        return await this._userModel.find({ _id: { $in: userIds } }).toArray();
+    }
+
+    /**
      * Fetches an array of users.
      * @param {number} page Page number, starts at 0.
      * @param {number} perPage Number of users per page, this is the max length of the array returned.
