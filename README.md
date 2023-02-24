@@ -138,7 +138,7 @@ Trying out any operation in the [api-spec](https://registry.uoa-discords.com/api
 
 I've set up a local version of the API and logged in, but I don't seem to have any permissions?
 
-> You'll need to edit your user in MongoDB to give yourself the `Owner` permission (value 8).
+> You'll need to edit your user in MongoDB to give yourself every permission (value 127).
 
 What are the possible statuses of a server in the registry?
 
