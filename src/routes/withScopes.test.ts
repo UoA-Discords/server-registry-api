@@ -1,404 +1,350 @@
-import express from 'express';
-import request from 'supertest';
+import { AccountDeletedError } from '../errors/AccountDeletedError';
+import { AuthError } from '../errors/AuthError';
 import { siteErrorHandler } from '../middleware/siteErrorHandler';
 import { AuthService } from '../services/AuthService';
+import { ServerService } from '../services/ServerService';
+import { UserService } from '../services/UserService';
 import { mockConfig } from '../tests/mockConfig';
-import { mockedOAuthResult } from '../tests/mockedOAuthResult';
-import { mockedUser } from '../tests/mockedUser';
-import { AppModels } from '../types/Database/AppModels';
-import { EndpointProvider, AuthScopes, DatabaseScopes } from '../types/Express/EndpointProvider';
+import { stubApp } from '../tests/stubApp';
+import { SiteTokenPayload } from '../types/Auth/SiteTokenPayload';
+import { AuthScopes, EndpointProvider } from '../types/Express/EndpointProvider';
+import { AppServices } from '../types/Services/AppServices';
 import { User } from '../types/User';
 import { UserPermissions } from '../types/User/UserPermissions';
-
 import { withScopes } from './withScopes';
+
+interface ScopeTestEndpointReturnValue {
+    auth: boolean;
+    user: boolean;
+    authService: boolean;
+    userService: boolean;
+    serverService: boolean;
+}
 
 describe('withScopes', () => {
     const config = mockConfig();
 
-    const providerNoScopes: EndpointProvider<
-        AuthScopes.None,
-        DatabaseScopes.None,
-        void,
-        { auth: boolean; user: boolean; db: boolean }
-    > = {
-        auth: AuthScopes.None,
-        database: DatabaseScopes.None,
-        permissionsRequired: null,
-        applyToRoute: ({ auth, user, db }) => {
-            return (_req, res) =>
-                res.status(200).send({
-                    auth: !!auth,
-                    user: !!user,
-                    db: !!db,
-                });
-        },
-    };
+    const validateSiteToken = jest.fn<
+        ReturnType<AuthService['validateSiteToken']>,
+        Parameters<AuthService['validateSiteToken']>
+    >();
+    const getUserById = jest.fn<ReturnType<UserService['getUserById']>, Parameters<UserService['getUserById']>>();
 
-    describe('no scopes', () => {
-        it('functions without a database nor authorization header', async () => {
-            const app = express();
-            app.get('/', withScopes(providerNoScopes, config));
+    const authService = { validateSiteToken } as unknown as AuthService;
+    const userService = { getUserById } as unknown as UserService;
+    const serverService = {} as ServerService;
+    const services: AppServices = { authService, userService, serverService };
 
-            const res = await request(app).get('/');
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
+    describe('AuthScopes: None', () => {
+        const endpointNoScopes: EndpointProvider<AuthScopes.None, void, ScopeTestEndpointReturnValue> = {
+            auth: AuthScopes.None,
+            permissionsRequired: null,
+            applyToRoute({ auth, user, authService, userService, serverService }) {
+                return (_req, res) =>
+                    res.status(200).send({
+                        auth: !!auth,
+                        user: !!user,
+                        authService: !!authService,
+                        userService: !!userService,
+                        serverService: !!serverService,
+                    });
+            },
+        };
+        const app = stubApp(config, [], [], withScopes(endpointNoScopes, config, services));
+
+        it('applies the route as expected', async () => {
+            const res = await app.get('/');
 
             expect(res.statusCode).toBe(200);
-            expect(res.body).toEqual({ auth: false, user: false, db: false });
-        });
-    });
-
-    describe('database scopes', () => {
-        describe("scope: 'None'", () => {
-            it("doesn't provide a database if present", async () => {
-                const app = express();
-                app.get('/', withScopes(providerNoScopes, config, {} as AppModels));
-
-                const res = await request(app).get('/');
-
-                expect(res.statusCode).toBe(200);
-                expect(res.body).toEqual({ auth: false, user: false, db: false });
-            });
-        });
-
-        describe("scope: 'Access'", () => {
-            const providerAccessScopes: EndpointProvider<
-                AuthScopes.None,
-                DatabaseScopes.Access,
-                void,
-                { auth: boolean; user: boolean; db: boolean }
-            > = {
-                auth: AuthScopes.None,
-                database: DatabaseScopes.Access,
-                permissionsRequired: null,
-                applyToRoute: ({ auth, user, db }) => {
-                    return (_req, res) =>
-                        res.status(200).send({
-                            auth: !!auth,
-                            user: !!user,
-                            db: !!db,
-                        });
-                },
-            };
-
-            it('functions with a database', async () => {
-                const app = express();
-                app.get('/', withScopes(providerAccessScopes, config, {} as AppModels));
-
-                const res = await request(app).get('/');
-
-                expect(res.statusCode).toBe(200);
-                expect(res.body).toEqual({ auth: false, user: false, db: true });
-            });
-
-            it('returns status code 501 when a database is not present', async () => {
-                const app = express();
-                app.get('/', withScopes(providerAccessScopes, config));
-
-                const res = await request(app).get('/');
-                expect(res.statusCode).toBe(501);
+            expect(res.body).toEqual<ScopeTestEndpointReturnValue>({
+                auth: false,
+                user: false,
+                authService: true,
+                userService: true,
+                serverService: true,
             });
         });
     });
 
-    describe('auth scopes', () => {
-        const dummyAuthentication = `Bearer ${AuthService.makeSiteToken(
-            config,
-            mockedOAuthResult,
-            'withScopes test user id',
-        )}`;
+    describe('AuthScopes: TokenOnly', () => {
+        const endpointTokenOnlyScopes: EndpointProvider<AuthScopes.TokenOnly, void, ScopeTestEndpointReturnValue> = {
+            auth: AuthScopes.TokenOnly,
+            permissionsRequired: null,
+            applyToRoute({ auth, user, authService, userService, serverService }) {
+                return (_req, res) =>
+                    res.status(200).send({
+                        auth: !!auth,
+                        user: !!user,
+                        authService: !!authService,
+                        userService: !!userService,
+                        serverService: !!serverService,
+                    });
+            },
+        };
 
-        describe("scope: 'None'", () => {
-            it("doesn't authenticate if an authorization header is provided", async () => {
-                const app = express();
-                app.get('/', withScopes(providerNoScopes, config));
+        const app = stubApp(config, [], [siteErrorHandler], withScopes(endpointTokenOnlyScopes, config, services));
 
-                const res = await request(app).get('/').set('Authorization', dummyAuthentication);
-
-                expect(res.statusCode).toBe(200);
-                expect(res.body).toEqual({ auth: false, user: false, db: false });
+        it('throws an AuthError when token validation fails', async () => {
+            validateSiteToken.mockImplementationOnce(() => {
+                throw new AuthError('', '');
             });
+
+            const res = await app.get('/');
+
+            expect(res.statusCode).toBe(401);
+            expect(res.body).toEqual({
+                message: expect.any(String),
+                hint: expect.any(String),
+            });
+
+            expect(validateSiteToken).toBeCalledTimes(1);
         });
 
-        describe("scope: 'TokenOnly'", () => {
-            const providerTokenScopes: EndpointProvider<
-                AuthScopes.TokenOnly,
-                DatabaseScopes.None,
-                void,
-                { auth: boolean; user: boolean; db: boolean }
-            > = {
-                auth: AuthScopes.TokenOnly,
-                database: DatabaseScopes.None,
-                permissionsRequired: null,
-                applyToRoute: ({ auth, user, db }) => {
-                    return (_req, res) =>
-                        res.status(200).send({
-                            auth: !!auth,
-                            user: !!user,
-                            db: !!db,
-                        });
-                },
-            };
+        it('allows valid tokens to access the route', async () => {
+            validateSiteToken.mockReturnValueOnce({} as SiteTokenPayload);
 
-            it('functions when an authorization header is provided', async () => {
-                const app = express();
-                app.get('/', withScopes(providerTokenScopes, config));
+            const res = await app.get('/');
 
-                const res = await request(app).get('/').set('Authorization', dummyAuthentication);
-
-                expect(res.statusCode).toBe(200);
-                expect(res.body).toEqual({ auth: true, user: false, db: false });
+            expect(res.statusCode).toBe(200);
+            expect(res.body).toEqual<ScopeTestEndpointReturnValue>({
+                auth: true,
+                user: false,
+                authService: true,
+                userService: true,
+                serverService: true,
             });
 
-            it('returns status code 401 when an authorization header is not provided', async () => {
-                const app = express();
-                app.get('/', withScopes(providerTokenScopes, config));
-                app.use(siteErrorHandler(config));
+            expect(validateSiteToken).toBeCalledTimes(1);
+        });
+    });
 
-                const res = await request(app).get('/');
-                expect(res.statusCode).toBe(401);
+    describe('AuthScopes: OptionalUser', () => {
+        const endpointOptionalUserScopes: EndpointProvider<
+            AuthScopes.OptionalUser,
+            void,
+            ScopeTestEndpointReturnValue
+        > = {
+            auth: AuthScopes.OptionalUser,
+            permissionsRequired: null,
+            applyToRoute({ auth, user, authService, userService, serverService }) {
+                return (_req, res) =>
+                    res.status(200).send({
+                        auth: !!auth,
+                        user: !!user,
+                        authService: !!authService,
+                        userService: !!userService,
+                        serverService: !!serverService,
+                    });
+            },
+        };
+
+        const app = stubApp(config, [], [siteErrorHandler], withScopes(endpointOptionalUserScopes, config, services));
+
+        it('throws an AuthError when token validation fails', async () => {
+            validateSiteToken.mockImplementationOnce(() => {
+                throw new AuthError('', '');
             });
+
+            const res = await app.get('/').set('Authorization', 'some bearer token');
+
+            expect(res.statusCode).toBe(401);
+            expect(res.body).toEqual({
+                message: expect.any(String),
+                hint: expect.any(String),
+            });
+
+            expect(validateSiteToken).toBeCalledTimes(1);
+            expect(getUserById).toBeCalledTimes(0);
         });
 
-        describe("scope: 'OptionalUser'", () => {
-            const providerOptionalUserScopes: EndpointProvider<
-                AuthScopes.OptionalUser,
-                DatabaseScopes.None,
-                void,
-                { auth: boolean; user: boolean; db: boolean }
-            > = {
-                auth: AuthScopes.OptionalUser,
-                database: DatabaseScopes.None,
-                permissionsRequired: null,
-                applyToRoute: ({ auth, user, db }) => {
-                    return (_req, res) =>
-                        res.status(200).send({
-                            auth: !!auth,
-                            user: !!user,
-                            db: !!db,
-                        });
-                },
-            };
-
-            it('functions when an authorization header is provided and a valid user exists', async () => {
-                const app = express();
-                app.get(
-                    '/',
-                    withScopes(providerOptionalUserScopes, config, {
-                        users: { findOne: () => 1 },
-                    } as unknown as AppModels),
-                );
-
-                const res = await request(app).get('/').set('Authorization', dummyAuthentication);
-
-                expect(res.statusCode).toBe(200);
-                expect(res.body).toEqual({ auth: true, user: true, db: false });
+        it("throws an AccountDeletedError when user doesn't exist", async () => {
+            validateSiteToken.mockReturnValueOnce({ id: 'some id' } as SiteTokenPayload);
+            getUserById.mockImplementationOnce(() => {
+                throw new AccountDeletedError();
             });
 
-            it('functions when no authorization header is provided', async () => {
-                const app = express();
-                app.get(
-                    '/',
-                    withScopes(providerOptionalUserScopes, config, {
-                        users: { findOne: () => 1 },
-                    } as unknown as AppModels),
-                );
+            const res = await app.get('/').set('Authorization', 'some bearer token');
 
-                const res = await request(app).get('/');
-
-                expect(res.statusCode).toBe(200);
-                expect(res.body).toEqual({ auth: false, user: false, db: false });
+            expect(res.statusCode).toBe(401);
+            expect(res.body).toEqual({
+                message: expect.any(String),
+                hint: expect.any(String),
             });
 
-            it('returns status code 401 when an authorization header is provided but no valid user exists', async () => {
-                const app = express();
-                app.get(
-                    '/',
-                    withScopes(providerOptionalUserScopes, config, {
-                        users: { findOne: () => null },
-                    } as unknown as AppModels),
-                );
-                app.use(siteErrorHandler(config));
-
-                const res = await request(app).get('/').set('Authorization', dummyAuthentication);
-                expect(res.statusCode).toBe(401);
-            });
-
-            it('returns status code 501 when a database is not present', async () => {
-                const app = express();
-                app.get('/', withScopes(providerOptionalUserScopes, config));
-
-                const res = await request(app).get('/').set('Authorization', dummyAuthentication);
-                expect(res.statusCode).toBe(501);
-            });
-
-            it('returns status code 401 when an invalid authorization header is provided', async () => {
-                const app = express();
-                app.get(
-                    '/',
-                    withScopes(providerOptionalUserScopes, config, {
-                        users: { findOne: () => null },
-                    } as unknown as AppModels),
-                );
-                app.use(siteErrorHandler(config));
-
-                const res = await request(app).get('/').set('Authorization', 'Bearer abcdefg');
-                expect(res.statusCode).toBe(401);
-            });
+            expect(validateSiteToken).toBeCalledTimes(1);
+            expect(getUserById).toBeCalledTimes(1);
         });
 
-        describe("scope: 'User'", () => {
-            describe('without permissions', () => {
-                const providerUserNoPermsScopes: EndpointProvider<
-                    AuthScopes.User,
-                    DatabaseScopes.None,
-                    void,
-                    { auth: boolean; user: boolean; db: boolean }
-                > = {
-                    auth: AuthScopes.User,
-                    database: DatabaseScopes.None,
-                    permissionsRequired: null,
-                    applyToRoute: ({ auth, user, db }) => {
-                        return (_req, res) =>
-                            res.status(200).send({
-                                auth: !!auth,
-                                user: !!user,
-                                db: !!db,
-                            });
-                    },
-                };
+        it('allows valid tokens to access the route', async () => {
+            validateSiteToken.mockReturnValueOnce({ id: 'some id' } as SiteTokenPayload);
+            getUserById.mockReturnValueOnce(Promise.resolve({} as User<true>));
 
-                it('functions when an authorization header is provided and a valid user exists', async () => {
-                    const app = express();
-                    app.get(
-                        '/',
-                        withScopes(providerUserNoPermsScopes, config, {
-                            users: { findOne: () => 1 },
-                        } as unknown as AppModels),
-                    );
+            const res = await app.get('/').set('Authorization', 'some bearer token');
 
-                    const res = await request(app).get('/').set('Authorization', dummyAuthentication);
-
-                    expect(res.statusCode).toBe(200);
-                    expect(res.body).toEqual({ auth: true, user: true, db: false });
-                });
-
-                it('returns status code 401 when no authorization header is provided', async () => {
-                    const app = express();
-                    app.get(
-                        '/',
-                        withScopes(providerUserNoPermsScopes, config, {
-                            users: { findOne: () => 1 },
-                        } as unknown as AppModels),
-                    );
-                    app.use(siteErrorHandler(config));
-
-                    const res = await request(app).get('/');
-                    expect(res.statusCode).toBe(401);
-                });
-
-                it('returns status code 401 when an authorization header is provided but no valid user exists', async () => {
-                    const app = express();
-                    app.get(
-                        '/',
-                        withScopes(providerUserNoPermsScopes, config, {
-                            users: { findOne: () => null },
-                        } as unknown as AppModels),
-                    );
-                    app.use(siteErrorHandler(config));
-
-                    const res = await request(app).get('/').set('Authorization', dummyAuthentication);
-                    expect(res.statusCode).toBe(401);
-                });
-
-                it('returns status code 501 when a database is not present', async () => {
-                    const app = express();
-                    app.get('/', withScopes(providerUserNoPermsScopes, config));
-
-                    const res = await request(app).get('/').set('Authorization', dummyAuthentication);
-                    expect(res.statusCode).toBe(501);
-                });
+            expect(res.statusCode).toBe(200);
+            expect(res.body).toEqual<ScopeTestEndpointReturnValue>({
+                auth: true,
+                user: true,
+                authService: true,
+                userService: true,
+                serverService: true,
             });
 
-            describe('with permissions', () => {
-                const providerUserPermsScopes: EndpointProvider<
-                    AuthScopes.User,
-                    DatabaseScopes.None,
-                    void,
-                    { auth: boolean; user: boolean; db: boolean }
-                > = {
-                    auth: AuthScopes.User,
-                    database: DatabaseScopes.None,
-                    permissionsRequired: UserPermissions.Favourite | UserPermissions.Feature,
-                    applyToRoute: ({ auth, user, db }) => {
-                        return (_req, res) =>
-                            res.status(200).send({
-                                auth: !!auth,
-                                user: !!user,
-                                db: !!db,
-                            });
-                    },
-                };
-
-                it('functions when permissions are valid or invalid', async () => {
-                    const tempUser: User<true> = {
-                        ...mockedUser,
-                        permissions:
-                            UserPermissions.Favourite | UserPermissions.Feature | UserPermissions.MakeApplications,
-                    };
-
-                    const app = express();
-                    app.get(
-                        '/',
-                        withScopes(providerUserPermsScopes, config, {
-                            users: { findOne: () => tempUser },
-                        } as unknown as AppModels),
-                    );
-                    app.use(siteErrorHandler(config));
-
-                    const res = await request(app).get('/').set('Authorization', dummyAuthentication);
-
-                    expect(res.statusCode).toBe(200);
-                    expect(res.body).toEqual({ auth: true, user: true, db: false });
-
-                    tempUser.permissions = UserPermissions.MakeApplications;
-
-                    const res2 = await request(app).get('/').set('Authorization', dummyAuthentication);
-                    expect(res2.statusCode).toBe(403);
-                });
-            });
+            expect(validateSiteToken).toBeCalledTimes(1);
+            expect(getUserById).toBeCalledTimes(1);
         });
 
-        describe('unknown scopes', () => {
-            const providerUnknownAuthScopes: EndpointProvider<AuthScopes, DatabaseScopes, void, void> = {
-                auth: -1,
-                database: DatabaseScopes.None,
-                permissionsRequired: null,
-                applyToRoute: () => () => null,
-            };
+        it('allows omitted tokens to access the route', async () => {
+            const res = await app.get('/');
 
-            const providerUnknownDatabaseScopes: EndpointProvider<AuthScopes, DatabaseScopes, void, void> = {
-                auth: AuthScopes.None,
-                database: -1,
-                permissionsRequired: null,
-                applyToRoute: () => () => null,
-            };
-
-            it('throws an error for unknown auth scopes', () => {
-                try {
-                    withScopes(providerUnknownAuthScopes, config);
-                    fail('should have thrown an error');
-                } catch (error) {
-                    expect(error).toBeInstanceOf(Error);
-                }
+            expect(res.statusCode).toBe(200);
+            expect(res.body).toEqual<ScopeTestEndpointReturnValue>({
+                auth: false,
+                user: false,
+                authService: true,
+                userService: true,
+                serverService: true,
             });
 
-            it('throws an error for unknown database scopes', () => {
-                try {
-                    withScopes(providerUnknownDatabaseScopes, config);
-                    fail('should have thrown an error');
-                } catch (error) {
-                    expect(error).toBeInstanceOf(Error);
-                }
+            expect(validateSiteToken).toBeCalledTimes(0);
+            expect(getUserById).toBeCalledTimes(0);
+        });
+    });
+
+    describe('AuthScopes: User', () => {
+        const endpointUserScopes: EndpointProvider<AuthScopes.User, void, ScopeTestEndpointReturnValue> = {
+            auth: AuthScopes.User,
+            permissionsRequired: null,
+            applyToRoute({ auth, user, authService, userService, serverService }) {
+                return (_req, res) =>
+                    res.status(200).send({
+                        auth: !!auth,
+                        user: !!user,
+                        authService: !!authService,
+                        userService: !!userService,
+                        serverService: !!serverService,
+                    });
+            },
+        };
+
+        const app = stubApp(config, [], [siteErrorHandler], withScopes(endpointUserScopes, config, services));
+
+        it('throws an AuthError when token validation fails', async () => {
+            validateSiteToken.mockImplementationOnce(() => {
+                throw new AuthError('', '');
             });
+
+            const res = await app.get('/');
+
+            expect(res.statusCode).toBe(401);
+            expect(res.body).toEqual({
+                message: expect.any(String),
+                hint: expect.any(String),
+            });
+
+            expect(validateSiteToken).toBeCalledTimes(1);
+            expect(getUserById).toBeCalledTimes(0);
+        });
+
+        it("throws an AccountDeletedError when user doesn't exist", async () => {
+            validateSiteToken.mockReturnValueOnce({ id: 'some id' } as SiteTokenPayload);
+            getUserById.mockImplementationOnce(() => {
+                throw new AccountDeletedError();
+            });
+
+            const res = await app.get('/');
+
+            expect(res.statusCode).toBe(401);
+            expect(res.body).toEqual({
+                message: expect.any(String),
+                hint: expect.any(String),
+            });
+
+            expect(validateSiteToken).toBeCalledTimes(1);
+            expect(getUserById).toBeCalledTimes(1);
+        });
+
+        it('allows valid tokens to access the route', async () => {
+            validateSiteToken.mockReturnValueOnce({ id: 'some id' } as SiteTokenPayload);
+            getUserById.mockReturnValueOnce(Promise.resolve({} as User<true>));
+
+            const res = await app.get('/');
+
+            expect(res.statusCode).toBe(200);
+            expect(res.body).toEqual<ScopeTestEndpointReturnValue>({
+                auth: true,
+                user: true,
+                authService: true,
+                userService: true,
+                serverService: true,
+            });
+
+            expect(validateSiteToken).toBeCalledTimes(1);
+            expect(getUserById).toBeCalledTimes(1);
+        });
+    });
+
+    describe('AuthScopes: User (+ PermissionsRequired)', () => {
+        const endpointUserScopes: EndpointProvider<AuthScopes.User, void, ScopeTestEndpointReturnValue> = {
+            auth: AuthScopes.User,
+            permissionsRequired: UserPermissions.Feature | UserPermissions.MakeLotsOfApplications,
+            applyToRoute({ auth, user, authService, userService, serverService }) {
+                return (_req, res) =>
+                    res.status(200).send({
+                        auth: !!auth,
+                        user: !!user,
+                        authService: !!authService,
+                        userService: !!userService,
+                        serverService: !!serverService,
+                    });
+            },
+        };
+
+        const app = stubApp(config, [], [siteErrorHandler], withScopes(endpointUserScopes, config, services));
+
+        it('rejects users who do not have all the required permissions', async () => {
+            validateSiteToken.mockReturnValueOnce({ id: 'some id' } as SiteTokenPayload);
+            getUserById.mockReturnValueOnce(
+                Promise.resolve({ permissions: UserPermissions.Feature | UserPermissions.ManageServers } as User<true>),
+            );
+
+            const res = await app.get('/');
+
+            expect(res.statusCode).toBe(403);
+            expect(res.body).toEqual({
+                requiredPermissions: expect.arrayContaining([
+                    UserPermissions[UserPermissions.Feature],
+                    UserPermissions[UserPermissions.MakeLotsOfApplications],
+                ]),
+                currentPermissions: expect.arrayContaining([
+                    UserPermissions[UserPermissions.Feature],
+                    UserPermissions[UserPermissions.ManageServers],
+                ]),
+                missingPermissions: expect.arrayContaining([UserPermissions[UserPermissions.MakeLotsOfApplications]]),
+            });
+        });
+    });
+
+    describe('AuthScopes: Other', () => {
+        const endpointUnknownScopes: EndpointProvider<AuthScopes, void, void> = {
+            auth: -1,
+            permissionsRequired: UserPermissions.Feature | UserPermissions.MakeLotsOfApplications,
+            applyToRoute() {
+                return () => void 0;
+            },
+        };
+
+        it('throws an error on creation', () => {
+            try {
+                withScopes(endpointUnknownScopes, config, services);
+                fail('should have thrown an error');
+            } catch (error) {
+                expect(error).toBeInstanceOf(Error);
+            }
         });
     });
 });
