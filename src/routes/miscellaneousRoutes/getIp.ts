@@ -1,8 +1,7 @@
-import { AuthScopes, DatabaseScopes, EndpointProvider } from '../../types/Express/EndpointProvider';
+import { AuthScopes, EndpointProvider } from '../../types/Express/EndpointProvider';
 
-export const getIp: EndpointProvider<AuthScopes.None, DatabaseScopes.None, void, string> = {
+export const getIp: EndpointProvider<AuthScopes.None, void, string> = {
     auth: AuthScopes.None,
-    database: DatabaseScopes.None,
     permissionsRequired: null,
     applyToRoute() {
         return (req, res) => {

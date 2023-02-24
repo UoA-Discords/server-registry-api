@@ -1,14 +1,13 @@
-import { AuthService } from '../../services/AuthService';
-import { AuthScopes, DatabaseScopes, EndpointProvider } from '../../types/Express/EndpointProvider';
+import { AuthScopes, EndpointProvider } from '../../types/Express/EndpointProvider';
 
-export const getLogout: EndpointProvider<AuthScopes.TokenOnly, DatabaseScopes.Access, void, void> = {
+export const getLogout: EndpointProvider<AuthScopes.TokenOnly, void, void> = {
     auth: AuthScopes.TokenOnly,
-    database: DatabaseScopes.Access,
     permissionsRequired: null,
-    applyToRoute({ auth, config }) {
+    applyToRoute({ auth, authService }) {
         return async (_req, res, next) => {
             try {
-                await AuthService.logout(config, auth.access_token);
+                await authService.logout(auth.access_token);
+
                 res.sendStatus(200);
             } catch (error) {
                 next(error);
