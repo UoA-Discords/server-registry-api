@@ -320,11 +320,6 @@ describe('withScopes', () => {
                     UserPermissions[UserPermissions.Feature],
                     UserPermissions[UserPermissions.MakeLotsOfApplications],
                 ]),
-                currentPermissions: expect.arrayContaining([
-                    UserPermissions[UserPermissions.Feature],
-                    UserPermissions[UserPermissions.ManageServers],
-                ]),
-                missingPermissions: expect.arrayContaining([UserPermissions[UserPermissions.MakeLotsOfApplications]]),
             });
         });
     });

@@ -55,7 +55,7 @@ export function withScopes<T extends EndpointProvider<AuthScopes, any, any, any,
                         provider.permissionsRequired !== null &&
                         !UserService.hasPermission(user, provider.permissionsRequired)
                     ) {
-                        throw new ForbiddenError(provider.permissionsRequired, user.permissions);
+                        throw new ForbiddenError(provider.permissionsRequired);
                     }
                     return provider.applyToRoute({ ...params, auth, user })(req, res, next);
                 } catch (error) {

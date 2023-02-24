@@ -346,6 +346,61 @@
                     }
                 }
             }
+        },
+        "/users/{id}": {
+            "parameters": [{ "$ref": "#/components/parameters/DiscordID" }],
+            "patch": {
+                "tags": ["User Management"],
+                "security": [{ "siteToken": [], "rateLimitBypassToken": [] }, { "siteToken": [] }],
+                "operationId": "patchUserPermissions",
+                "description": "Modifies the target user's permissions, note you need to have `Owner` or `Manage Users` permissions to do this.",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "newPermissions": {
+                                        "$ref": "#/components/schemas/UserPermissions"
+                                    },
+                                    "reason": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "example": "Promoted to site moderator."
+                                    }
+                                },
+                                "additionalProperties": false,
+                                "required": ["newPermissions", "reason"]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Updated user object.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/User"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/ForbiddenError403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFoundError404"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/RateLimited429"
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -597,22 +652,34 @@
                                     },
                                     "example": ["Favourite", "ManageServers", "Feature"]
                                 },
-                                "currentPermissions": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "string"
-                                    },
-                                    "example": ["ManageServers", "Feature"]
-                                },
-                                "missingPermissions": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "string"
-                                    },
-                                    "example": ["Favourite"]
+                                "message": {
+                                    "type": "string",
+                                    "example": "This user also has the `Manage Users` permission, so you cannot modify them."
                                 }
                             },
-                            "required": ["requiredPermissions", "currentPermissions", "missingPermissions"],
+                            "required": ["requiredPermissions"],
+                            "additionalProperties": false
+                        }
+                    }
+                }
+            },
+            "NotFoundError404": {
+                "description": "The requested resource was not found.",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "example": "User Not Found"
+                                },
+                                "hint": {
+                                    "type": "string",
+                                    "example": "A user with this ID does not exist in the database."
+                                }
+                            },
+                            "required": ["message", "hint"],
                             "additionalProperties": false
                         }
                     }
