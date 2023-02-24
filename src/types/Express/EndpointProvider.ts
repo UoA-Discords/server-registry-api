@@ -3,7 +3,10 @@ import { Config } from '../Config';
 import { SiteTokenPayload } from '../Auth/SiteTokenPayload';
 import { User } from '../User';
 import { UserPermissions } from '../User/UserPermissions';
-import { AppModels } from '../Database/AppModels';
+import { AuthService } from '../../services/AuthService';
+import { UserService } from '../../services/UserService';
+import { ServerService } from '../../services/ServerService';
+import { AppServices } from '../Services/AppServices';
 
 /** Endpoint handler with typed request body and response types. */
 export type EndpointProviderReturnValue<
@@ -28,8 +31,8 @@ export enum AuthScopes {
      * Authorization header isn't needed, but if supplied then a user will be fetched.
      *
      * - Will throw an `AuthError` if the token is invalid.
-     * - Will throw an `AuthError` if the user associated with the provided token no longer exists in the database.
-     * - Will return 501 (Not Implemented) if the user database does not exist.
+     * - Will throw an `AccountDeletedError` if the user associated with the provided token no longer exists in the
+     * database.
      */
     OptionalUser,
 
@@ -37,35 +40,34 @@ export enum AuthScopes {
      * An authorization token associated with an existing user is needed.
      *
      * - Will throw an `AuthError`if the token is invalid.
-     * - Will throw an `AuthError` if the user associated with the provided token no longer exists in the database.
+     * - Will throw an `AccountDeletedError` if the user associated with the provided token no longer exists in the
+     * database.
      * - Will throw a `ForbiddenError` if the user lacks the required permissions (if permissions are specified).
-     * - Will return 501 (Not Implemented) if the user database does not exist.
      */
     User,
 }
 
-export enum DatabaseScopes {
-    /** This endpoint does not interact with the database. */
-    None,
-
-    /**
-     * This endpoint interacts with the database.
-     *
-     * - Will return 501 (Not Implemented) if said database does not exist.
-     */
-    Access,
+interface EndpointProviderParams<TAuth extends AuthScopes> extends AppServices {
+    config: Config;
+    auth: TAuth extends AuthScopes.None
+        ? null
+        : TAuth extends AuthScopes.OptionalUser
+        ? null | SiteTokenPayload
+        : SiteTokenPayload;
+    user: TAuth extends AuthScopes.User ? User<true> : TAuth extends AuthScopes.OptionalUser ? null | User<true> : null;
+    authService: AuthService;
+    userService: UserService;
+    serverService: ServerService;
 }
 
 export interface EndpointProvider<
     TAuth extends AuthScopes,
-    TDatabase extends DatabaseScopes,
     TRequest,
     TResponse,
     TPathParams = unknown,
     TQueryParams = unknown,
 > {
     auth: TAuth;
-    database: TDatabase;
     /**
      * Requesting user must have all of these permissions, or else the server will respond with 403 (Forbidden).
      *
@@ -73,22 +75,11 @@ export interface EndpointProvider<
      */
     permissionsRequired: TAuth extends AuthScopes.User ? UserPermissions | null : null;
     applyToRoute: ({
-        auth,
         config,
-        db,
+        auth,
         user,
-    }: {
-        auth: TAuth extends AuthScopes.None
-            ? null
-            : TAuth extends AuthScopes.OptionalUser
-            ? null | SiteTokenPayload
-            : SiteTokenPayload;
-        config: Config;
-        db: TDatabase extends DatabaseScopes.Access ? AppModels : null;
-        user: TAuth extends AuthScopes.User
-            ? User<true>
-            : TAuth extends AuthScopes.OptionalUser
-            ? null | User<true>
-            : null;
-    }) => EndpointProviderReturnValue<TRequest, TResponse, TPathParams, TQueryParams>;
+        authService,
+        userService,
+        serverService,
+    }: EndpointProviderParams<TAuth>) => EndpointProviderReturnValue<TRequest, TResponse, TPathParams, TQueryParams>;
 }
