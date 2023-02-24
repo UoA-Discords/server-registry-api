@@ -533,9 +533,6 @@
                     }
                 }
             },
-            "NotImplemented501": {
-                "description": "This endpoint requires a database, which has not been configured nor provided to the handler."
-            },
             "SecondaryRequestError502": {
                 "description": "A call to another API made by the server failed.",
                 "content": {
