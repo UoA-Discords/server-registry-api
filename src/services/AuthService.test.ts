@@ -9,6 +9,7 @@ import {
 } from 'discord-api-types/v10';
 import jwt, { JsonWebTokenError, sign, TokenExpiredError, verify } from 'jsonwebtoken';
 import { AuthError } from '../errors/AuthError';
+import { NotFoundError } from '../errors/NotFoundError';
 import { SecondaryRequestError } from '../errors/SecondaryRequestError';
 import { mockConfig } from '../tests/mockConfig';
 import { mockedOAuthResult } from '../tests/mockedOAuthResult';
@@ -44,7 +45,9 @@ describe('AuthService', () => {
 
         it('calls signup methods when no existing user is found', async () => {
             const registerNewUser = jest.fn<User<true>, any>(() => mockedUser);
-            getUserById.mockReturnValueOnce(null);
+            getUserById.mockImplementationOnce(() => {
+                throw new NotFoundError('server');
+            });
 
             const authService = new AuthService(config, { getUserById, registerNewUser } as unknown as UserService);
 
@@ -102,6 +105,24 @@ describe('AuthService', () => {
 
             expect(makeSiteToken).toBeCalledTimes(1);
             expect(makeSiteToken).toBeCalledWith(mockedOAuthResult, mockedAPIUser.id);
+        });
+
+        it('throws unexpected errors', async () => {
+            getUserById.mockImplementationOnce(() => {
+                throw new Error();
+            });
+
+            const authService = new AuthService(config, { getUserById } as unknown as UserService);
+
+            jest.spyOn(authService as any, 'requestAccessToken').mockImplementationOnce(requestAccessToken);
+            jest.spyOn(authService as any, 'getAssociatedUser').mockImplementationOnce(getAssociatedUser);
+
+            try {
+                await authService.loginOrSignup('some authorization code', 'some redirect URI', 'some ip');
+                fail('should have thrown an error');
+            } catch (error) {
+                expect(error).toBeInstanceOf(Error);
+            }
         });
     });
 

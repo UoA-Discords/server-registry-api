@@ -2,6 +2,7 @@ import axios from 'axios';
 import { APIUser, OAuth2Routes, RESTPostOAuth2AccessTokenResult, RouteBases } from 'discord-api-types/v10';
 import { JsonWebTokenError, sign, TokenExpiredError, verify } from 'jsonwebtoken';
 import { AuthError } from '../errors/AuthError';
+import { NotFoundError } from '../errors/NotFoundError';
 import { SecondaryRequestError } from '../errors/SecondaryRequestError';
 import { LoginOrSignupResponse } from '../types/Auth/LoginOrSignupResponse';
 import { SiteTokenPayload } from '../types/Auth/SiteTokenPayload';
@@ -43,21 +44,22 @@ export class AuthService {
 
         const discordUser = await this.getAssociatedUser(discordAuth.access_token);
 
-        const existingUser = await this._userService.getUserById(discordUser.id, false);
-
         let response: LoginOrSignupResponse;
 
-        if (existingUser === null) {
-            // signup
-            response = {
-                user: await this._userService.registerNewUser(discordUser, ip),
-                discordAuth,
-                siteAuth: this.makeSiteToken(discordAuth, discordUser.id),
-            };
-        } else {
+        try {
+            await this._userService.getUserById(discordUser.id, false);
+
             // login
             response = {
                 user: await this._userService.refreshExistingUser(discordUser, ip),
+                discordAuth,
+                siteAuth: this.makeSiteToken(discordAuth, discordUser.id),
+            };
+        } catch (error) {
+            if (!(error instanceof NotFoundError)) throw error;
+            // signup
+            response = {
+                user: await this._userService.registerNewUser(discordUser, ip),
                 discordAuth,
                 siteAuth: this.makeSiteToken(discordAuth, discordUser.id),
             };

@@ -2,7 +2,9 @@ import { APIUser } from 'discord-api-types/payloads/v10/user';
 import { StrictFilter, StrictUpdateFilter } from 'mongodb';
 import { defaultUser } from '../defaults/defaultUser';
 import { AccountDeletedError } from '../errors/AccountDeletedError';
+import { ForbiddenError } from '../errors/ForbiddenError';
 import { InternalServiceError } from '../errors/InternalServiceError';
+import { NotFoundError } from '../errors/NotFoundError';
 import { UserModel } from '../models/UserModel';
 import { WithPagination } from '../types/Page';
 import { User } from '../types/User';
@@ -58,16 +60,18 @@ export class UserService {
      * Fetches a user via their Discord ID.
      * @param {DiscordIdString} id The Discord ID of the user in question.
      * @param {boolean} isSelf Whether the user being fetched is the one making the request. If this is true, then an
-     * {@link AccountDeletedError} will be thrown if the user does not exist.
+     * {@link AccountDeletedError} will be thrown instead of an {@link NotFoundError} if the user does not exist.
      * @returns {Promise<User<true> | null>} The user.
      * @throws Throws an {@link AccountDeletedError} if `isSelf` is true and the user does not exist.
+     * @throws Throws a {@link NotFoundError} if `isSelf` is false and the user does not exist.
      */
-    public async getUserById(id: DiscordIdString, isSelf: true): Promise<User<true>>;
-    public async getUserById(id: DiscordIdString, isSelf: false): Promise<User<true> | null>;
-    public async getUserById(id: DiscordIdString, isSelf: boolean): Promise<User<true> | null> {
+    public async getUserById(id: DiscordIdString, isSelf: boolean): Promise<User<true>> {
         const user = await this._userModel.findOne({ _id: id });
 
-        if (user === null && isSelf) throw new AccountDeletedError();
+        if (user === null) {
+            if (isSelf) throw new AccountDeletedError();
+            throw new NotFoundError('server');
+        }
 
         return user;
     }
@@ -137,6 +141,128 @@ export class UserService {
         if (updateResult.value === null) throw new AccountDeletedError();
 
         return updateResult.value;
+    }
+
+    /**
+     * Updates the permissions of a user.
+     * @param {User<true>} sourceUser The user who is conducting the change.
+     * @param {DiscordIdString} targetUserId ID of the user who is getting their permissions changed.
+     * @param {UserPermissions} newPermissions New permissions bitfield.
+     * @param {string | null} reason Reason for permission change.
+     * @throws Throws a {@link NotFoundError} if the target user does not exist.
+     * @throws Throws a {@link ForbiddenError} if the source user does not have permission to edit the target user.
+     */
+    public async updateUserPermissions(
+        sourceUser: User<true>,
+        targetUserId: DiscordIdString,
+        newPermissions: UserPermissions,
+        reason: string | null,
+    ): Promise<User<true>> {
+        const targetUser = await this.getUserById(targetUserId, false);
+
+        UserService.canEditUser(sourceUser, targetUser);
+        UserService.canChangePermissionsTo(sourceUser.permissions, targetUser.permissions, newPermissions);
+
+        const updateResult = await this._userModel.findOneAndUpdate(
+            { _id: targetUserId },
+            {
+                $set: {
+                    permissions: newPermissions,
+                    permissionsLog: [
+                        {
+                            oldUserPermissions: targetUser.permissions,
+                            by: sourceUser._id,
+                            at: new Date().toISOString(),
+                            reason,
+                        },
+                        ...targetUser.permissionsLog.slice(0, 99),
+                    ],
+                },
+            },
+        );
+
+        if (updateResult.value === null) throw new NotFoundError('server');
+
+        return updateResult.value;
+    }
+
+    /**
+     * User permission editing validation method, this checks that the source user is allowed to modify the permissions
+     * of the target user.
+     * @param {User<true>} sourceUser User who is conducting the change.
+     * @param {User<true>} targetUser User who is getting their permissions changed.
+     * @throws Throws a {@link ForbiddenError} if permission checks fail.
+     *
+     * Note this does not check whether the new permissions are valid, for that see {@link canChangePermissionsTo}.
+     */
+    private static canEditUser(sourceUser: User<true>, targetUser: User<true>): void {
+        // if you don't have `ManageUsers` or `Owner` permissions, you can't edit anyone
+        if (
+            !UserService.hasPermission(sourceUser, UserPermissions.ManageUsers) &&
+            !UserService.hasPermission(sourceUser, UserPermissions.Owner)
+        )
+            throw new ForbiddenError(
+                UserPermissions.ManageUsers,
+                'Need the `ManageUsers` or `Owner` permissions to edit users.',
+            );
+
+        // you can always edit yourself
+        if (sourceUser._id === targetUser._id) return;
+
+        // nobody can edit owners (except themselves)
+        if (UserService.hasPermission(targetUser, UserPermissions.Owner)) {
+            throw new ForbiddenError(0, 'Cannot edit users with the `Owner` permission.');
+        }
+
+        // if the target user has `ManageUsers` permission, you can only edit them if you're an owner
+        if (
+            UserService.hasPermission(targetUser, UserPermissions.ManageUsers) &&
+            !UserService.hasPermission(sourceUser, UserPermissions.Owner)
+        ) {
+            throw new ForbiddenError(
+                UserPermissions.Owner,
+                'Need the `Owner` permission to edit users with the `ManageUsers` permission.',
+            );
+        }
+    }
+
+    /**
+     * User permission editing validation method, this checks that the new permissions don't add or remove anything they
+     * shouldn't.
+     * @param {UserPermissions} sourceUserPermissions Permissions of the user who is conducting the change.
+     * @param {UserPermissions} oldPermissions Current permissions of the target user.
+     * @param {UserPermissions} newPermissions Desired new permissions of the target user.
+     * @throws Throws a {@link ForbiddenError} if permission checks fail.
+     *
+     * Note this does not check whether the source user should be able to apply this change, for that see
+     * {@link canEditUser}.
+     */
+    private static canChangePermissionsTo(
+        sourceUserPermissions: UserPermissions,
+        oldPermissions: UserPermissions,
+        newPermissions: UserPermissions,
+    ): void {
+        // if the permissions are the same, then it's fine
+        if (oldPermissions === newPermissions) return;
+
+        const isRemovingOrAdding = (p: UserPermissions) => {
+            const oldHas = UserService.hasPermission(oldPermissions, p);
+            const newHas = UserService.hasPermission(newPermissions, p);
+            return oldHas !== newHas;
+        };
+
+        // the `Owner` permission cannot be removed or added
+        if (isRemovingOrAdding(UserPermissions.Owner)) {
+            throw new ForbiddenError(0, 'Cannot remove or add the `Owner` permission.');
+        }
+
+        // the `ManageUsers` permission cannot be removed or added by non-owners
+        if (
+            isRemovingOrAdding(UserPermissions.ManageUsers) &&
+            !UserService.hasPermission(sourceUserPermissions, UserPermissions.Owner)
+        ) {
+            throw new ForbiddenError(0, 'Cannot remove or add the `ManageUsers` permission.');
+        }
     }
 
     /**

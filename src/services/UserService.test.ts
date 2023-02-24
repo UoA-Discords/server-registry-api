@@ -2,10 +2,13 @@
 import { StrictUpdateFilter } from 'mongodb';
 import { defaultUser } from '../defaults/defaultUser';
 import { AccountDeletedError } from '../errors/AccountDeletedError';
+import { ForbiddenError } from '../errors/ForbiddenError';
 import { InternalServiceError } from '../errors/InternalServiceError';
+import { NotFoundError } from '../errors/NotFoundError';
 import { UserModel } from '../models/UserModel';
 import { mockedAPIUser, mockedUser } from '../tests/mockedUser';
 import { User } from '../types/User';
+import { UserChangeRecord } from '../types/User/UserChangeRecord';
 import { UserPermissions } from '../types/User/UserPermissions';
 import { UserService } from './UserService';
 
@@ -81,15 +84,19 @@ describe('UserService', () => {
         it('returns the user if they exist', async () => {
             findOne.mockReturnValueOnce(mockedUser);
 
-            const res = await userService.getUserById(mockedUser._id, false);
+            const res = await userService.getUserById(mockedUser._id, true);
             expect(res).toEqual(mockedUser);
         });
 
-        it("returns null if the user doesn't exist and isSelf is false", async () => {
+        it("throws a NotFoundError if the user doesn't exist and isSelf is false", async () => {
             findOne.mockReturnValueOnce(null);
 
-            const res = await userService.getUserById(mockedUser._id, false);
-            expect(res).toEqual(null);
+            try {
+                await userService.getUserById(mockedUser._id, false);
+                fail('should have thrown an error');
+            } catch (error) {
+                expect(error).toBeInstanceOf(NotFoundError);
+            }
         });
 
         it("throws an AccountDeletedError if the user doesn't exist and isSelf is true", async () => {
@@ -194,6 +201,193 @@ describe('UserService', () => {
             } catch (error) {
                 expect(error).toBeInstanceOf(AccountDeletedError);
             }
+        });
+    });
+
+    describe('updateUserPermissions', () => {
+        const owner: User<true> = { ...mockedUser, permissions: UserPermissions.Owner, _id: 'owner' };
+        const manager: User<true> = { ...mockedUser, permissions: UserPermissions.ManageUsers, _id: 'manager' };
+
+        const findOneAndUpdate = jest.fn<
+            ReturnType<UserModel['findOneAndUpdate']>,
+            Parameters<UserModel['findOneAndUpdate']>
+        >();
+        const findOne = jest.fn<ReturnType<UserModel['findOne']>, Parameters<UserModel['findOne']>>();
+        const userService = new UserService({ findOneAndUpdate, findOne } as unknown as UserModel);
+
+        it('throws a ForbiddenError if preliminary checks fail', async () => {
+            findOne.mockResolvedValueOnce(owner).mockResolvedValueOnce(owner);
+
+            // canEditUser will throw
+            try {
+                await userService.updateUserPermissions(manager, owner._id, owner.permissions, null);
+                fail('should have thrown an error');
+            } catch (error) {
+                expect(error).toBeInstanceOf(ForbiddenError);
+            }
+
+            // canChangePermissionsTo will throw
+            try {
+                await userService.updateUserPermissions(owner, owner._id, 0, null);
+                fail('should have thrown an error');
+            } catch (error) {
+                expect(error).toBeInstanceOf(ForbiddenError);
+            }
+        });
+
+        it('calls the findOneAndUpdate method of the user model', async () => {
+            findOne.mockResolvedValueOnce(owner);
+            findOneAndUpdate.mockResolvedValueOnce({ value: owner } as unknown as ReturnType<
+                UserModel['findOneAndUpdate']
+            >);
+
+            await userService.updateUserPermissions(
+                owner,
+                owner._id,
+                owner.permissions | UserPermissions.ManageServers,
+                'some reason',
+            );
+
+            expect(findOneAndUpdate).toBeCalledWith<[{ _id: string }, StrictUpdateFilter<User<true>>]>(
+                { _id: owner._id },
+                {
+                    $set: {
+                        permissions: owner.permissions | UserPermissions.ManageServers,
+                        permissionsLog: expect.arrayContaining<UserChangeRecord>([
+                            {
+                                oldUserPermissions: owner.permissions,
+                                by: owner._id,
+                                at: now.toISOString(),
+                                reason: 'some reason',
+                            },
+                            ...owner.permissionsLog,
+                        ]),
+                    },
+                },
+            );
+            expect(findOneAndUpdate).toBeCalledTimes(1);
+        });
+
+        it('throws a NotFoundError if the update fails', async () => {
+            findOne.mockResolvedValueOnce(owner);
+            findOneAndUpdate.mockResolvedValueOnce({ value: null } as unknown as ReturnType<
+                UserModel['findOneAndUpdate']
+            >);
+
+            try {
+                await userService.updateUserPermissions(
+                    owner,
+                    owner._id,
+                    owner.permissions | UserPermissions.ManageServers,
+                    'some reason',
+                );
+                fail('should have thrown an error');
+            } catch (error) {
+                expect(error).toBeInstanceOf(NotFoundError);
+            }
+        });
+    });
+
+    describe('canEditUser', () => {
+        const owner: User<true> = { ...mockedUser, permissions: UserPermissions.Owner, _id: 'owner' };
+        const manager: User<true> = { ...mockedUser, permissions: UserPermissions.ManageUsers, _id: 'manager' };
+        const manager2: User<true> = { ...mockedUser, permissions: UserPermissions.ManageUsers, _id: 'manager2' };
+        const normal: User<true> = { ...mockedUser, permissions: 0, _id: 'normal' };
+
+        it("throws a ForbiddenError when the source user does not have the 'Manage Users' or 'Owner' permissions", () => {
+            try {
+                UserService['canEditUser'](normal, normal);
+                fail('should have thrown an error');
+            } catch (error) {
+                expect(error).toBeInstanceOf(ForbiddenError);
+            }
+        });
+
+        it("passes when a user with the 'Manage Users' or 'Owner' permissions is editing themselves", () => {
+            expect(() => UserService['canEditUser'](owner, owner)).not.toThrow();
+            expect(() => UserService['canEditUser'](manager, manager)).not.toThrow();
+        });
+
+        it("throws a ForbiddenError if the target user has the 'Owner' permission and they are not targetting themselves", () => {
+            try {
+                UserService['canEditUser'](manager, owner);
+                fail('should have thrown an error');
+            } catch (error) {
+                expect(error).toBeInstanceOf(ForbiddenError);
+            }
+        });
+
+        it("throws a ForbiddenError if the target user has the 'Manage Users' permission if the source user doesn't have the 'Owner' permission", () => {
+            try {
+                UserService['canEditUser'](manager2, manager);
+                fail('should have thrown an error');
+            } catch (error) {
+                expect(error).toBeInstanceOf(ForbiddenError);
+            }
+            expect(() => UserService['canEditUser'](owner, manager)).not.toThrow();
+        });
+
+        // it('passes in all other situations', () => {
+        //     expect(UserService['canEditUser'](manager, normal)).toBe(true);
+        //     expect(UserService['canEditUser'](owner, normal)).toBe(true);
+        // });
+    });
+
+    describe('canChangePermissionsTo', () => {
+        it('passes when the permissions are equal', () => {
+            const permissions = UserPermissions.Favourite | UserPermissions.Feature | UserPermissions.MakeApplications;
+            expect(() => UserService['canChangePermissionsTo'](0, permissions, permissions)).not.toThrow();
+        });
+
+        it("throws a ForbiddenError when the 'Owner' permission is being added or removed", () => {
+            const withoutOwner = UserPermissions.Favourite | UserPermissions.Feature | UserPermissions.MakeApplications;
+            const withOwner = withoutOwner | UserPermissions.Owner;
+
+            try {
+                UserService['canChangePermissionsTo'](0, withoutOwner, withOwner);
+                fail('should have thrown an error');
+            } catch (error) {
+                expect(error).toBeInstanceOf(ForbiddenError);
+            }
+
+            try {
+                UserService['canChangePermissionsTo'](0, withOwner, withoutOwner);
+                fail('should have thrown an error');
+            } catch (error) {
+                expect(error).toBeInstanceOf(ForbiddenError);
+            }
+        });
+
+        it("throws a ForbiddenError when a non-owner is trying to add or remove the 'Manage Users' permission", () => {
+            const withoutManageUsers = UserPermissions.Favourite | UserPermissions.Feature;
+            const withManageUsers = withoutManageUsers | UserPermissions.ManageUsers;
+
+            try {
+                UserService['canChangePermissionsTo'](0, withoutManageUsers, withManageUsers);
+                fail('should have thrown an error');
+            } catch (error) {
+                expect(error).toBeInstanceOf(ForbiddenError);
+            }
+
+            try {
+                UserService['canChangePermissionsTo'](0, withManageUsers, withoutManageUsers);
+                fail('should have thrown an error');
+            } catch (error) {
+                expect(error).toBeInstanceOf(ForbiddenError);
+            }
+        });
+
+        it("passes when an owner is trying to add or remove the 'Manage Users' permission", () => {
+            const withoutManageUsers = UserPermissions.Favourite | UserPermissions.Feature;
+            const withManageUsers = withoutManageUsers | UserPermissions.ManageUsers;
+
+            expect(() =>
+                UserService['canChangePermissionsTo'](UserPermissions.Owner, withoutManageUsers, withManageUsers),
+            ).not.toThrow();
+
+            expect(() =>
+                UserService['canChangePermissionsTo'](UserPermissions.Owner, withManageUsers, withoutManageUsers),
+            ).not.toThrow();
         });
     });
 
