@@ -233,10 +233,65 @@
                     }
                 }
             }
+        },
+        "/users": {
+            "get": {
+                "tags": ["User Management"],
+                "security": [{ "siteToken": [], "rateLimitBypassToken": [] }, { "siteToken": [] }],
+                "operationId": "getAllUsers",
+                "description": "Gets all users, this is under the management tag as getting all user information is only something those with the `ManageUsers` permission can do.",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/Page"
+                    },
+                    {
+                        "$ref": "#/components/parameters/PerPage"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated users array.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "totalItemCount": {
+                                            "$ref": "#/components/schemas/PaginationReturnedItemCount"
+                                        },
+                                        "items": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/User"
+                                            }
+                                        }
+                                    },
+                                    "additionalProperties": false,
+                                    "required": ["totalItemCount", "items"]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/ForbiddenError403"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/RateLimited429"
+                    }
+                }
+            }
         }
     },
     "components": {
         "schemas": {
+            "PaginationReturnedItemCount": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Total number of relevant items across all pages."
+            },
             "LoginOrSignupResponse": {
                 "type": "object",
                 "properties": {
@@ -484,14 +539,14 @@
                                     "items": {
                                         "type": "string"
                                     },
-                                    "example": ["Favourite", "ManageServers", "Feature"]
+                                    "example": ["ManageServers", "Feature"]
                                 },
                                 "missingPermissions": {
                                     "type": "array",
                                     "items": {
                                         "type": "string"
                                     },
-                                    "example": ["Favourite", "ManageServers", "Feature"]
+                                    "example": ["Favourite"]
                                 }
                             },
                             "required": ["requiredPermissions", "currentPermissions", "missingPermissions"],
@@ -562,7 +617,31 @@
                 }
             }
         },
-        "parameters": {},
+        "parameters": {
+            "Page": {
+                "in": "query",
+                "name": "page",
+                "schema": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "example": 0,
+                    "description": "Page number, starts at 0."
+                },
+                "required": true
+            },
+            "PerPage": {
+                "in": "query",
+                "name": "perPage",
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100,
+                    "example": 20,
+                    "description": "Number of items per page."
+                },
+                "required": true
+            }
+        },
         "securitySchemes": {
             "siteToken": {
                 "type": "http",

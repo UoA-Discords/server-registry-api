@@ -11,6 +11,7 @@ import { siteErrorHandler } from '../middleware/siteErrorHandler';
 import { applyMiscellaneousRoutes } from '../routes/miscellaneousRoutes';
 import { applyAuthRoutes } from '../routes/authRoutes';
 import { AppServices } from '../types/Services/AppServices';
+import { applyPrivateUserRoutes } from '../routes/privateUserRoutes';
 
 export function loadExpress(config: Config, services: AppServices): Express {
     const app = express();
@@ -38,6 +39,7 @@ export function loadExpress(config: Config, services: AppServices): Express {
 
     applyAuthRoutes(app, config, services);
     applyMiscellaneousRoutes(app, config, services);
+    applyPrivateUserRoutes(app, config, services);
 
     // post-route middleware (e.g. error catching)
     app.use(siteErrorHandler(config));
