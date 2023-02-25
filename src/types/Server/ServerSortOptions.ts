@@ -1,13 +1,13 @@
 /** Options for sorting an array of servers. */
 export enum ServerSortOptions {
     /** Sort by Discord ID. */
-    Id = 0,
+    Id,
     /** Sort by status. */
-    Status = 1,
+    Status,
     /** Sort by name. */
-    Name = 2,
+    Name,
     /** Sort by 'created at' timestamp. */
-    CreatedAt = 3,
+    CreatedAt,
     /** Sort by approximate count of total members (may be outdated). */
-    MemberCount = 4,
+    MemberCount,
 }
