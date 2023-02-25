@@ -19,20 +19,16 @@ export interface Server {
     inviteCode: string;
 
     /**
-     * The ID of user who created this invite.
+     * The {@link APIUser user} who created this invite.
      *
-     * If this user exists in our database, their Discord ID is used.
-     *
-     * Otherwise parts of the Discord API {@link APIUser User} object returned from the invite data are used.
-     *
-     * Can also be `null` since some invites do not have a creator.
+     * Can be `null` since some invites do not have a creator.
      */
-    inviteCreatedBy: DiscordIdString | Pick<APIUser, 'id' | 'username' | 'discriminator' | 'avatar'> | null;
+    inviteCreatedBy: Pick<APIUser, 'id' | 'username' | 'discriminator' | 'avatar'> | null;
 
     guildData: {
         name: string;
 
-        icon: string;
+        icon: string | null;
 
         splash: string | null;
 
@@ -52,4 +48,11 @@ export interface Server {
     entryFacultyTags: EntryFacultyTags;
 
     statusLog: ServerChangeRecord[];
+
+    /** Approximate values of the server's online and total member count. */
+    size: {
+        online: number;
+        total: number;
+        lastUpdated: ISOString;
+    };
 }
