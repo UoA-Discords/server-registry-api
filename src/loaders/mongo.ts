@@ -15,7 +15,10 @@ export async function loadMongo(config: Config): Promise<[UserModel, ServerModel
     const userModel: UserModel = db.collection('users');
     const serverModel: ServerModel = db.collection('servers');
 
-    await Promise.all([userModel.createIndex({ 'discord.username': 'text' })]);
+    await Promise.all([
+        userModel.createIndex({ 'discord.username': 'text' }),
+        serverModel.createIndex({ 'guildData.name': 'text' }),
+    ]);
 
     return [userModel, serverModel];
 }
