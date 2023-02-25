@@ -814,7 +814,7 @@
         },
         {
             "name": "Server Listing",
-            "description": "Fetching and searching servers."
+            "description": "Fetching, submitting and searching servers."
         },
         {
             "name": "User Listing",
