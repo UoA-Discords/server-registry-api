@@ -65,6 +65,12 @@
             "type": "string",
             "examples": ["abc-123..."],
             "description": "OAuth2 client secret of your Discord application."
+        },
+        "maxLogSize": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Maximum number of recorded user permission and server status change logs.",
+            "default": 50
         }
     },
     "additionalProperties": false,

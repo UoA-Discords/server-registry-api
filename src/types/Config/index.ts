@@ -31,6 +31,9 @@ export interface Config {
     /** Required value, process wil exit if omitted! */
     discordClientSecret: string;
 
+    /** Maximum number of recorded user permission and server status change logs. */
+    maxLogSize: number;
+
     // the following values should not be defined in `config.json` as they are automatically generated
     // if provided, they will be overwritten
 

@@ -32,6 +32,8 @@ export const defaultConfig: Config = {
     /** This default is undocumented in the schema, as it should only be used in testing. */
     discordClientSecret: 'dummy Discord client secret',
 
+    maxLogSize: 50,
+
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     version: process.env.NPM_VERSION || require('../../package.json').version,
 
