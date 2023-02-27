@@ -45,3 +45,4 @@ jobs:
 
             - name: Upload Coverage
               uses: codecov/codecov-action@v3.1.1
+              with: ${{ secrets.CODECOV_TOKEN }}
