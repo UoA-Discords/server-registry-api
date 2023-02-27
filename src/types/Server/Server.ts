@@ -43,6 +43,7 @@ export interface Server {
 
     serverTags: ServerTags;
 
+    /** Ordered from newest to oldest. */
     statusLog: ServerChangeRecord[];
 
     /** Approximate values of the server's online and total member count. */

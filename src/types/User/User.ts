@@ -60,5 +60,6 @@ export interface User<TPrivacy extends 'ShowIP' | 'HideIP' = 'ShowIP'> {
      */
     actions: Record<ServerStatusAction, number>;
 
+    /** Ordered from newest to oldest. */
     permissionsLog: UserChangeRecord[];
 }
