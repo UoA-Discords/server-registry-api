@@ -488,7 +488,7 @@
         },
         "responses": {
             "BadRequestError400": {
-                "description": "Error thrown when a request is malformed or otherwise an invalid shape. This can also be thrown when a request's origin header is present and now in the allowed origins whitelist (CORS error).",
+                "description": "Error thrown when a request is malformed or otherwise an invalid shape. This can also be thrown when a request's origin header is present and not in the allowed origins whitelist (CORS error).",
                 "content": {
                     "application/json": {
                         "schema": {
