@@ -1,8 +1,8 @@
 # UoA Discords / Server Registry API <!-- omit in toc -->
 
-[![CI](https://github.com/UoA-Discords/api/actions/workflows/node.js.ci.yml/badge.svg)](https://github.com/UoA-Discords/api/actions/workflows/node.js.ci.yml)
-[![CodeQL](https://github.com/UoA-Discords/api/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/UoA-Discords/api/actions/workflows/codeql-analysis.yml)
-[![Deploy](https://github.com/UoA-Discords/api/actions/workflows/deploy.yml/badge.svg)](https://github.com/UoA-Discords/api/actions/workflows/deploy.yml)
+[![CI](https://github.com/UoA-Discords/server-registry-api/actions/workflows/node.js.ci.yml/badge.svg)](https://github.com/UoA-Discords/server-registry-api/actions/workflows/node.js.ci.yml)
+[![CodeQL](https://github.com/UoA-Discords/server-registry-api/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/UoA-Discords/server-registry-api/actions/workflows/codeql-analysis.yml)
+[![Deploy](https://github.com/UoA-Discords/server-registry-api/actions/workflows/deploy.yml/badge.svg)](https://github.com/UoA-Discords/server-registry-api/actions/workflows/deploy.yml)
 [![codecov](https://codecov.io/gh/UoA-Discords/server-registry-api/branch/main/graph/badge.svg?token=TC6189PH9R)](https://codecov.io/gh/UoA-Discords/server-registry-api)
 
 This is the API for our UoA Discord server registry, an online catalogue of various University of Auckland Discord servers.
