@@ -9,7 +9,7 @@ export const validatorErrorHandler: MiddlewareProvider =
         if (err instanceof HttpError) {
             res.status(400).json({
                 title: 'Bad Request',
-                description: err.description || 'Your client made an invalid request to the API.',
+                description: 'Your client made an invalid request to the API.',
                 additionalData: err.errors,
             });
         } else next(err);
