@@ -16,4 +16,10 @@ export const mockedInviteData: InviteData = {
     },
     code: 'mockedInviteData.code',
     channel: null,
+    inviter: {
+        id: 'mockedInviteData.inviter.id',
+        username: 'mockedInviteData.inviter.username',
+        discriminator: 'mockedInviteData.inviter.discriminator',
+        avatar: 'mockedInviteData.inviter.avatar',
+    },
 };

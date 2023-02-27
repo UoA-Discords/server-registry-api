@@ -107,6 +107,12 @@ async function makeDummyServer(serverService: ServerService, creator: User, i: n
                 nsfw_level: 0,
             },
             channel: null,
+            inviter: {
+                id: makeRandomId(`inv-${i}`),
+                username: `inviter ${i}`,
+                discriminator: makeRandomDiscriminator(),
+                avatar: null,
+            },
         },
         randomServerTags(),
     );

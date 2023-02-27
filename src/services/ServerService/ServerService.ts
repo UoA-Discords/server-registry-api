@@ -132,14 +132,13 @@ export class ServerService {
             _id: serverInfo.guild.id,
             status: ServerStatus.Pending,
             inviteCode: serverInfo.code,
-            inviteCreatedBy: serverInfo.inviter
-                ? {
-                      id: serverInfo.inviter.id,
-                      username: serverInfo.inviter.username,
-                      discriminator: serverInfo.inviter.discriminator,
-                      avatar: serverInfo.inviter.avatar,
-                  }
-                : null,
+            inviteCreatedBy: {
+                id: serverInfo.inviter.id,
+                username: serverInfo.inviter.username,
+                discriminator: serverInfo.inviter.discriminator,
+                avatar: serverInfo.inviter.avatar,
+            },
+
             guildData: {
                 name: serverInfo.guild.name,
                 icon: serverInfo.guild.icon,
@@ -184,14 +183,12 @@ export class ServerService {
             {
                 $set: {
                     inviteCode: updatedServerInfo.code,
-                    inviteCreatedBy: updatedServerInfo.inviter
-                        ? {
-                              id: updatedServerInfo.inviter.id,
-                              username: updatedServerInfo.inviter.username,
-                              discriminator: updatedServerInfo.inviter.discriminator,
-                              avatar: updatedServerInfo.inviter.avatar,
-                          }
-                        : null,
+                    inviteCreatedBy: {
+                        id: updatedServerInfo.inviter.id,
+                        username: updatedServerInfo.inviter.username,
+                        discriminator: updatedServerInfo.inviter.discriminator,
+                        avatar: updatedServerInfo.inviter.avatar,
+                    },
                     guildData: {
                         name: updatedServerInfo.guild.name,
                         icon: updatedServerInfo.guild.icon,

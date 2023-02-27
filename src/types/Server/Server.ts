@@ -18,12 +18,8 @@ export interface Server {
      */
     inviteCode: string;
 
-    /**
-     * The {@link APIUser user} who created this invite.
-     *
-     * Can be `null` since some invites do not have a creator.
-     */
-    inviteCreatedBy: Pick<APIUser, 'id' | 'username' | 'discriminator' | 'avatar'> | null;
+    /** The {@link APIUser user} who created this invite. */
+    inviteCreatedBy: Pick<APIUser, 'id' | 'username' | 'discriminator' | 'avatar'>;
 
     guildData: {
         name: string;

@@ -341,14 +341,12 @@ describe('ServerService', () => {
                 _id: mockedInviteData.guild.id,
                 status: ServerStatus.Pending,
                 inviteCode: mockedInviteData.code,
-                inviteCreatedBy: mockedInviteData.inviter
-                    ? {
-                          id: mockedInviteData.inviter.id,
-                          username: mockedInviteData.inviter.username,
-                          discriminator: mockedInviteData.inviter.discriminator,
-                          avatar: mockedInviteData.inviter.avatar,
-                      }
-                    : null,
+                inviteCreatedBy: {
+                    id: mockedInviteData.inviter.id,
+                    username: mockedInviteData.inviter.username,
+                    discriminator: mockedInviteData.inviter.discriminator,
+                    avatar: mockedInviteData.inviter.avatar,
+                },
                 guildData: {
                     name: mockedInviteData.guild.name,
                     icon: mockedInviteData.guild.icon,
@@ -421,14 +419,12 @@ describe('ServerService', () => {
             expect(updatedServer).toEqual<Server>({
                 ...originalServer,
                 inviteCode: mockedInviteData.code,
-                inviteCreatedBy: mockedInviteData.inviter
-                    ? {
-                          id: mockedInviteData.inviter.id,
-                          username: mockedInviteData.inviter.username,
-                          discriminator: mockedInviteData.inviter.discriminator,
-                          avatar: mockedInviteData.inviter.avatar,
-                      }
-                    : null,
+                inviteCreatedBy: {
+                    id: mockedInviteData.inviter.id,
+                    username: mockedInviteData.inviter.username,
+                    discriminator: mockedInviteData.inviter.discriminator,
+                    avatar: mockedInviteData.inviter.avatar,
+                },
                 guildData: {
                     name: mockedInviteData.guild.name,
                     icon: mockedInviteData.guild.icon,

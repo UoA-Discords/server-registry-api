@@ -17,7 +17,12 @@ export const mockedServer: Server = {
         verificationLevel: 0,
     },
     inviteCode: 'mockedServer.inviteCode',
-    inviteCreatedBy: null,
+    inviteCreatedBy: {
+        id: 'mockedServer.inviteCreatedBy.id',
+        username: 'mockedServer.inviteCreatedBy.username',
+        discriminator: 'mockedServer.inviteCreatedBy.discriminator',
+        avatar: 'mockedServer.inviteCreatedBy.avatar',
+    },
     status: ServerStatus.Public,
     statusLog: [],
     size: {
