@@ -1,26 +1,30 @@
 import axios from 'axios';
-import { APIUser, OAuth2Routes, RESTPostOAuth2AccessTokenResult, RouteBases } from 'discord-api-types/v10';
-import { JsonWebTokenError, sign, TokenExpiredError, verify } from 'jsonwebtoken';
-import { AuthError } from '../errors/AuthError';
-import { NotFoundError } from '../errors/NotFoundError';
-import { SecondaryRequestError } from '../errors/SecondaryRequestError';
-import { LoginOrSignupResponse } from '../types/Auth/LoginOrSignupResponse';
-import { SiteTokenPayload } from '../types/Auth/SiteTokenPayload';
-import { Config } from '../types/Config';
-import { UserService } from './UserService';
+import { RESTPostOAuth2AccessTokenResult, APIUser, RouteBases, OAuth2Routes } from 'discord-api-types/v10';
+import { verify, JsonWebTokenError, TokenExpiredError, sign } from 'jsonwebtoken';
+import { AuthError } from '../../errors/AuthError';
+import { NotFoundError } from '../../errors/NotFoundError';
+import { SecondaryRequestError } from '../../errors/SecondaryRequestError';
+import { LoginOrSignupResponse } from '../../types/Auth/LoginOrSignupResponse';
+import { SiteTokenPayload } from '../../types/Auth/SiteTokenPayload';
+import { Config } from '../../types/Config';
+import { UserService } from '../UserService';
 
 /**
  * The auth service manages all interactions related to user sessions and authentication (but not authorization).
  *
- * - Session Handling:
- *   - Creating a new session ({@link loginOrSignup}).
- *   - Extending an existing session ({@link refresh}).
- *   - Terminating an existing session ({@link logout}).
- *  - Authentication:
- *   - Validating a site token ({@link validateSiteToken}).
+ * - Creating a session ({@link loginOrSignup}).
+ * - Extending a session ({@link refresh}).
+ * - Terminating a session ({@link logout}).
+ * - Getting the current session ({@link validateSiteToken}).
+ *
+ * Interactions with this service may throw any of the following errors:
+ * - {@link AuthError}
+ * - {@link SecondaryRequestError}
+ * - {@link UserService} Errors
  */
 export class AuthService {
     private readonly _config: Config;
+
     private readonly _userService: UserService;
 
     public constructor(config: Config, userService: UserService) {
@@ -29,15 +33,15 @@ export class AuthService {
     }
 
     /**
-     * Creates or updates a user in the database, upgrades a Discord OAuth authorization code into an access token, and
-     * generates a site token for the requester.
-     * @param {string} code Authorization code to upgrade into an access token.
-     * @param {string} redirectUri Redirect URI for access token.
-     * @param {string} ip Current IP address of requester.
-     * @returns {Promise<LoginOrSignupResponse>} Information about the created user, Discord OAuth credentials, and site
-     * token.
+     * Creates/updates a user in the database, completes the Discord OAuth2 login process, and signs a site token (JWT).
+     * @param {string} code Discord OAuth2 authorization code to upgrade into an access token.
+     * @param {string} redirectUri Redirect URI that was used to obtain the code.
+     * @param {string} ip Current IP address of the requester.
+     * @returns {Promise<LoginOrSignupResponse>} The account created/updated, and auth information associated with it.
      *
-     * See also: {@link refresh}, {@link logout}
+     * See also: {@link refresh} (sister method), {@link logout} (sister method)
+     *
+     * @see {@link https://discord.com/developers/docs/topics/oauth2#authorization-code-grant-authorization-code-exchange-example}
      */
     public async loginOrSignup(code: string, redirectUri: string, ip: string): Promise<LoginOrSignupResponse> {
         const discordAuth = await this.requestAccessToken(code, redirectUri);
@@ -47,7 +51,7 @@ export class AuthService {
         let response: LoginOrSignupResponse;
 
         try {
-            await this._userService.getUserById(discordUser.id, false);
+            await this._userService.getUserById(discordUser.id);
 
             // login
             response = {
@@ -57,9 +61,10 @@ export class AuthService {
             };
         } catch (error) {
             if (!(error instanceof NotFoundError)) throw error;
+
             // signup
             response = {
-                user: await this._userService.registerNewUser(discordUser, ip),
+                user: await this._userService.createNewUser(discordUser, ip),
                 discordAuth,
                 siteAuth: this.makeSiteToken(discordAuth, discordUser.id),
             };
@@ -69,12 +74,12 @@ export class AuthService {
     }
 
     /**
-     * Updates an existing user in the database and refreshes their Discord OAuth access token.
-     * @param {string} refreshToken Refresh token to use in Discord OAuth refresh process.
-     * @param {string} ip Current IP address of requester.
-     * @returns {Promise<LoginOrSignupResponse>} Updated user, Discord OAuth credentials, and site token.
+     * Refreshes a user's site token (JWT), Discord access token, and Discord user data using a refresh token.
+     * @param {string} refreshToken Discord OAuth2 refresh token.
+     * @param {string} ip Current IP address of the requester.
+     * @returns {Promise<LoginOrSignupResponse>} The refreshed account, and auth information associated with it.
      *
-     * See also: {@link loginOrSignup}, {@link logout}
+     * See also: {@link loginOrSignup} (sister method), {@link logout} (sister method)
      */
     public async refresh(refreshToken: string, ip: string): Promise<LoginOrSignupResponse> {
         const discordAuth = await this.refreshAccessToken(refreshToken);
@@ -91,11 +96,10 @@ export class AuthService {
     }
 
     /**
-     * Logs the user out by revoking their Discord access token.
-     * @param {string} accessToken The user's Discord access token.
-     * @throws Throws a {@link SecondaryRequestError} if the request to the Discord API fails.
+     * Logs the user out by recoking their Discord access token.
+     * @param {string} accessToken Discord OAuth2 access token.
      *
-     * See also: {@link refresh}, {@link loginOrSignup}
+     * See also: {@link loginOrSignup} (sister method), {@link refresh} (sister method)
      */
     public async logout(accessToken: string): Promise<void> {
         await this.revokeAccessToken(accessToken);
@@ -103,24 +107,18 @@ export class AuthService {
 
     /**
      * Validates an authorization header.
-     * @param {string|undefined} token Authorization header value.
-     * @returns {SiteTokenPayload} Returns the token payload object, containing the user's access tokens and Discord ID.
-     * @throws Throws an {@link AuthError} for number of reasons.
-     *
-     * See also: {@link makeSiteToken}
+     * @param {string | undefined} token Authorization header value (e.g. `Bearer abcdefg...`).
+     * @returns {SiteTokenPayload} The payload of the site token.
      */
     public validateSiteToken(token: string | undefined): SiteTokenPayload {
         if (token === undefined) {
             throw new AuthError('Missing Authorization', 'A token was not provided in the authorization header.');
         }
 
-        if (token.toLowerCase().startsWith('bearer ')) token = token.slice('bearer '.length);
-        else if (token.toLowerCase().startsWith('token ')) token = token.slice('token '.length);
-
         let payload;
 
         try {
-            payload = verify(token, this._config.jwtSecret);
+            payload = verify(token.slice('Bearer '.length), this._config.jwtSecret);
         } catch (error) {
             if (error instanceof JsonWebTokenError) {
                 // see https://www.npmjs.com/package/jsonwebtoken > JsonWebTokenError
@@ -130,10 +128,7 @@ export class AuthService {
                 throw new AuthError('Session Expired', 'Site token has expired, logging out is required.');
             }
 
-            throw new AuthError(
-                'Unknown Authorization Error',
-                `An unexpected error occurred${error instanceof Error ? `: ${error.message}` : '.'}`,
-            );
+            throw new AuthError('Unknown Authorization Error', 'An unexpected error occurred.');
         }
 
         // all the below conditions are never likely to be true, since we only sign our JWTs with valid paylods
@@ -174,12 +169,13 @@ export class AuthService {
     }
 
     /**
-     * Creates a JsonWebToken of necessary user data.
-     * @param {RESTPostOAuth2AccessTokenResult} discordAuth Discord OAuth payload to get tokens from.
+     * Creates a JsonWebToken with a payload of necessary user data.
+     * @param {RESTPostOAuth2AccessTokenResult} discordAuth Discord OAuth2 payload to get tokens from.
      * @param {String} id Discord user ID.
      * @returns {String} The created site token.
      *
-     * See also: {@link validateSiteToken}
+     * See also: {@link validateSiteToken} (sister method), {@link loginOrSignup} (uses this method), {@link refresh}
+     * (uses this method)
      */
     private makeSiteToken(discordAuth: RESTPostOAuth2AccessTokenResult, id: string): string {
         const { access_token, refresh_token, expires_in } = discordAuth;
@@ -189,10 +185,11 @@ export class AuthService {
     }
 
     /**
-     * Attempts to get a {@link APIUser Discord user object} from an access token.
-     * @param {String} accessToken OAuth2 access token of the user.
+     * Fetches a {@link APIUser Discord user object} from an access token.
+     * @param {String} accessToken Discord OAuth2 access token of the user.
      * @returns {Promise<APIUser>} Information about the user who the provided access token belongs to.
-     * @throws Throws a {@link SecondaryRequestError} error if the request fails.
+     *
+     * See also: {@link loginOrSignup} (uses this method), {@link refresh} (uses this method)
      */
     private async getAssociatedUser(accessToken: string): Promise<APIUser> {
         try {
@@ -226,9 +223,8 @@ export class AuthService {
      * @param {String} code Authorization code returned by Discord.
      * @param {String} redirectUri Redirect URI (should exactly match one from the application settings).
      * @returns {Promise<RESTPostOAuth2AccessTokenResult>} Access token and related information.
-     * @throws Throws a {@link SecondaryRequestError} if the provided code or redirect URI is invalid.
      *
-     * See also: {@link refreshAccessToken}, {@link revokeAccessToken}
+     * See also: {@link refreshAccessToken} (sister method), {@link revokeAccessToken} (sister method)
      */
     private async requestAccessToken(code: string, redirectUri: string): Promise<RESTPostOAuth2AccessTokenResult> {
         const body = this.makeRequestBody();
@@ -258,9 +254,8 @@ export class AuthService {
      * @param {String} refreshToken Refresh token for the current session, returned by {@link requestAccessToken} and
      * {@link refreshAccessToken}.
      * @returns {Promise<RESTPostOAuth2AccessTokenResult>} New access token and related information.
-     * @throws Throws a {@link SecondaryRequestError} if the provided refresh token is invalid.
      *
-     * See also: {@link revokeAccessToken}, {@link requestAccessToken}
+     * See also: {@link revokeAccessToken} (sister method), {@link requestAccessToken} (sister method)
      */
     private async refreshAccessToken(refreshToken: string): Promise<RESTPostOAuth2AccessTokenResult> {
         const body = this.makeRequestBody();
@@ -288,9 +283,8 @@ export class AuthService {
      * Makes a POST request to the Discord token revocation URL, used to invalidate
      * an access token.
      * @param {String} accessToken Access token for the current session.
-     * @throws Throws a {@link SecondaryRequestError} if the request to the Discord API fails.
      *
-     * See also: {@link refreshAccessToken}, {@link requestAccessToken}
+     * See also: {@link refreshAccessToken} (sister method), {@link requestAccessToken} (sister method)
      */
     private async revokeAccessToken(accessToken: string): Promise<void> {
         const body = this.makeRequestBody();

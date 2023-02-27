@@ -1,5 +1,28 @@
-import { Response } from 'express';
+/** Generic error class that can be caught by middleware. */
+export abstract class SiteError<T = undefined> extends Error {
+    public abstract readonly statusCode: number;
+    public readonly title: string;
+    public readonly description: string;
+    public readonly additionalData: T;
 
-export abstract class SiteError {
-    public abstract send(res: Response): void;
+    /**
+     *
+     * @param {string} title The error described in a few words, should all be capitalized (e.g. `Failed to Fetch
+     * User`).
+     * @param {string} description A sentence that explains how the error occurred (e.g. `A user with this ID does not
+     * exist in the database.`).
+     * @param {T} additionalData Additional context to show the user.
+     */
+    public constructor(title: string, description: string, additionalData: T) {
+        super();
+        this.title = title;
+        this.description = description;
+        this.additionalData = additionalData;
+    }
+}
+
+export interface SiteErrorObject<T = undefined> {
+    title: string;
+    description: string;
+    additionalData: T;
 }

@@ -16,9 +16,9 @@ async function startServer() {
 
     const config = loadConfig();
 
-    const [userModel] = await loadMongo(config);
+    const [userModel, serverModel] = await loadMongo(config);
 
-    const services = loadServices(config, userModel);
+    const services = loadServices(config, userModel, serverModel);
 
     const app = loadExpress(config, services);
 

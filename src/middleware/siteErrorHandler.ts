@@ -1,10 +1,17 @@
-import { CorsError } from '../errors/CorsError';
-import { SiteError } from '../errors/SiteError';
+import { Response } from 'express';
+import { SiteError, SiteErrorObject } from '../errors/SiteError';
 import { MiddlewareProvider } from '../types/Express/MiddlewareProvider';
 
 export const siteErrorHandler: MiddlewareProvider = () => {
-    return (err, _req, res, next) => {
-        if (err instanceof SiteError || err instanceof CorsError) err.send(res);
-        else next(err);
+    return (err, req, res: Response<SiteErrorObject>, next) => {
+        if (err instanceof SiteError) {
+            if (req.app.get('env') === 'development') console.log(`${req.method} ${req.url}`, err);
+
+            res.status(err.statusCode).json({
+                title: err.title,
+                description: err.description,
+                additionalData: err.additionalData,
+            });
+        } else next(err);
     };
 };

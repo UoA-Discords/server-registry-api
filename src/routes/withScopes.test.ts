@@ -1,111 +1,86 @@
-import { AccountDeletedError } from '../errors/AccountDeletedError';
 import { AuthError } from '../errors/AuthError';
-import { siteErrorHandler } from '../middleware/siteErrorHandler';
-import { AuthService } from '../services/AuthService';
-import { ServerService } from '../services/ServerService';
-import { UserService } from '../services/UserService';
-import { mockConfig } from '../tests/mockConfig';
+import { ForbiddenError } from '../errors/ForbiddenError';
+import { NotFoundError } from '../errors/NotFoundError';
+import { siteErrorHandler } from '../middleware';
+import { PermissionService } from '../services/PermissionService';
+import { mockedConfig } from '../tests/mockedConfig';
+import { mockedAuthService, mockedUserService, mockedServerService } from '../tests/mockedServices';
+import { mockedUser } from '../tests/mockedUser';
 import { stubApp } from '../tests/stubApp';
 import { SiteTokenPayload } from '../types/Auth/SiteTokenPayload';
-import { AuthScopes, EndpointProvider } from '../types/Express/EndpointProvider';
-import { AppServices } from '../types/Services/AppServices';
-import { User } from '../types/User';
+import { AuthScopes, EndpointProviderReturnValue } from '../types/Express/EndpointProvider';
+import { AppServices } from '../types/Services';
 import { UserPermissions } from '../types/User/UserPermissions';
 import { withScopes } from './withScopes';
 
 interface ScopeTestEndpointReturnValue {
     auth: boolean;
     user: boolean;
-    authService: boolean;
-    userService: boolean;
-    serverService: boolean;
+}
+
+const services: AppServices = {
+    authService: mockedAuthService,
+    userService: mockedUserService,
+    serverService: mockedServerService,
+};
+
+function makeScopedEndpoint<T extends AuthScopes>(
+    auth: T,
+    permissions?: T extends AuthScopes.User ? UserPermissions : never,
+): EndpointProviderReturnValue<unknown, unknown, object, object> {
+    return withScopes(
+        {
+            auth,
+            permissionsRequired: permissions !== undefined ? permissions : null,
+            applyToRoute({ auth, user }) {
+                return (_req, res) =>
+                    res.status(200).json({
+                        auth: !!auth,
+                        user: !!user,
+                    });
+            },
+        },
+        mockedConfig,
+        services,
+    );
 }
 
 describe('withScopes', () => {
-    const config = mockConfig();
-
-    const validateSiteToken = jest.fn<
-        ReturnType<AuthService['validateSiteToken']>,
-        Parameters<AuthService['validateSiteToken']>
-    >();
-    const getUserById = jest.fn<ReturnType<UserService['getUserById']>, Parameters<UserService['getUserById']>>();
-
-    const authService = { validateSiteToken } as unknown as AuthService;
-    const userService = { getUserById } as unknown as UserService;
-    const serverService = {} as ServerService;
-    const services: AppServices = { authService, userService, serverService };
-
     afterEach(() => {
         jest.clearAllMocks();
     });
 
-    describe('AuthScopes: None', () => {
-        const endpointNoScopes: EndpointProvider<AuthScopes.None, void, ScopeTestEndpointReturnValue> = {
-            auth: AuthScopes.None,
-            permissionsRequired: null,
-            applyToRoute({ auth, user, authService, userService, serverService }) {
-                return (_req, res) =>
-                    res.status(200).send({
-                        auth: !!auth,
-                        user: !!user,
-                        authService: !!authService,
-                        userService: !!userService,
-                        serverService: !!serverService,
-                    });
-            },
-        };
-        const app = stubApp(config, [], [], withScopes(endpointNoScopes, config, services));
+    describe(AuthScopes[AuthScopes.None], () => {
+        const app = stubApp(mockedConfig, [], [], makeScopedEndpoint(AuthScopes.None));
 
-        it('applies the route as expected', async () => {
+        it('supplies no scopes to the route', async () => {
             const res = await app.get('/');
 
             expect(res.statusCode).toBe(200);
             expect(res.body).toEqual<ScopeTestEndpointReturnValue>({
                 auth: false,
                 user: false,
-                authService: true,
-                userService: true,
-                serverService: true,
             });
         });
     });
 
-    describe('AuthScopes: TokenOnly', () => {
-        const endpointTokenOnlyScopes: EndpointProvider<AuthScopes.TokenOnly, void, ScopeTestEndpointReturnValue> = {
-            auth: AuthScopes.TokenOnly,
-            permissionsRequired: null,
-            applyToRoute({ auth, user, authService, userService, serverService }) {
-                return (_req, res) =>
-                    res.status(200).send({
-                        auth: !!auth,
-                        user: !!user,
-                        authService: !!authService,
-                        userService: !!userService,
-                        serverService: !!serverService,
-                    });
-            },
-        };
-
-        const app = stubApp(config, [], [siteErrorHandler], withScopes(endpointTokenOnlyScopes, config, services));
+    describe(AuthScopes[AuthScopes.TokenOnly], () => {
+        const app = stubApp(mockedConfig, [], [siteErrorHandler], makeScopedEndpoint(AuthScopes.TokenOnly));
 
         it('throws an AuthError when token validation fails', async () => {
-            validateSiteToken.mockImplementationOnce(() => {
+            mockedAuthService.validateSiteToken.mockImplementationOnce(() => {
                 throw new AuthError('', '');
             });
 
             const res = await app.get('/');
 
             expect(res.statusCode).toBe(401);
-            expect(res.body).toEqual({
-                message: expect.any(String),
-                hint: expect.any(String),
-            });
 
-            expect(validateSiteToken).toBeCalledTimes(1);
+            expect(mockedAuthService.validateSiteToken).toBeCalledTimes(1);
         });
 
         it('allows valid tokens to access the route', async () => {
-            validateSiteToken.mockReturnValueOnce({} as SiteTokenPayload);
+            mockedAuthService.validateSiteToken.mockReturnValueOnce({} as SiteTokenPayload);
 
             const res = await app.get('/');
 
@@ -113,75 +88,45 @@ describe('withScopes', () => {
             expect(res.body).toEqual<ScopeTestEndpointReturnValue>({
                 auth: true,
                 user: false,
-                authService: true,
-                userService: true,
-                serverService: true,
             });
 
-            expect(validateSiteToken).toBeCalledTimes(1);
+            expect(mockedAuthService.validateSiteToken).toBeCalledTimes(1);
         });
     });
 
-    describe('AuthScopes: OptionalUser', () => {
-        const endpointOptionalUserScopes: EndpointProvider<
-            AuthScopes.OptionalUser,
-            void,
-            ScopeTestEndpointReturnValue
-        > = {
-            auth: AuthScopes.OptionalUser,
-            permissionsRequired: null,
-            applyToRoute({ auth, user, authService, userService, serverService }) {
-                return (_req, res) =>
-                    res.status(200).send({
-                        auth: !!auth,
-                        user: !!user,
-                        authService: !!authService,
-                        userService: !!userService,
-                        serverService: !!serverService,
-                    });
-            },
-        };
-
-        const app = stubApp(config, [], [siteErrorHandler], withScopes(endpointOptionalUserScopes, config, services));
+    describe(AuthScopes[AuthScopes.OptionalUser], () => {
+        const app = stubApp(mockedConfig, [], [siteErrorHandler], makeScopedEndpoint(AuthScopes.OptionalUser));
 
         it('throws an AuthError when token validation fails', async () => {
-            validateSiteToken.mockImplementationOnce(() => {
+            mockedAuthService.validateSiteToken.mockImplementationOnce(() => {
                 throw new AuthError('', '');
             });
 
             const res = await app.get('/').set('Authorization', 'some bearer token');
 
             expect(res.statusCode).toBe(401);
-            expect(res.body).toEqual({
-                message: expect.any(String),
-                hint: expect.any(String),
-            });
 
-            expect(validateSiteToken).toBeCalledTimes(1);
-            expect(getUserById).toBeCalledTimes(0);
+            expect(mockedAuthService.validateSiteToken).toBeCalledTimes(1);
+            expect(mockedUserService.getUserById).toBeCalledTimes(0);
         });
 
-        it("throws an AccountDeletedError when user doesn't exist", async () => {
-            validateSiteToken.mockReturnValueOnce({ id: 'some id' } as SiteTokenPayload);
-            getUserById.mockImplementationOnce(() => {
-                throw new AccountDeletedError();
+        it("throws a NotFoundError when the user doesn't exist", async () => {
+            mockedAuthService.validateSiteToken.mockReturnValueOnce({ id: 'some id' } as SiteTokenPayload);
+            mockedUserService.getUserById.mockImplementationOnce(() => {
+                throw new NotFoundError('user');
             });
 
             const res = await app.get('/').set('Authorization', 'some bearer token');
 
-            expect(res.statusCode).toBe(401);
-            expect(res.body).toEqual({
-                message: expect.any(String),
-                hint: expect.any(String),
-            });
+            expect(res.statusCode).toBe(404);
 
-            expect(validateSiteToken).toBeCalledTimes(1);
-            expect(getUserById).toBeCalledTimes(1);
+            expect(mockedAuthService.validateSiteToken).toBeCalledTimes(1);
+            expect(mockedUserService.getUserById).toBeCalledTimes(1);
         });
 
         it('allows valid tokens to access the route', async () => {
-            validateSiteToken.mockReturnValueOnce({ id: 'some id' } as SiteTokenPayload);
-            getUserById.mockReturnValueOnce(Promise.resolve({} as User<true>));
+            mockedAuthService.validateSiteToken.mockReturnValueOnce({ id: 'some id' } as SiteTokenPayload);
+            mockedUserService.getUserById.mockResolvedValueOnce(mockedUser);
 
             const res = await app.get('/').set('Authorization', 'some bearer token');
 
@@ -189,13 +134,10 @@ describe('withScopes', () => {
             expect(res.body).toEqual<ScopeTestEndpointReturnValue>({
                 auth: true,
                 user: true,
-                authService: true,
-                userService: true,
-                serverService: true,
             });
 
-            expect(validateSiteToken).toBeCalledTimes(1);
-            expect(getUserById).toBeCalledTimes(1);
+            expect(mockedAuthService.validateSiteToken).toBeCalledTimes(1);
+            expect(mockedUserService.getUserById).toBeCalledTimes(1);
         });
 
         it('allows omitted tokens to access the route', async () => {
@@ -205,72 +147,46 @@ describe('withScopes', () => {
             expect(res.body).toEqual<ScopeTestEndpointReturnValue>({
                 auth: false,
                 user: false,
-                authService: true,
-                userService: true,
-                serverService: true,
             });
 
-            expect(validateSiteToken).toBeCalledTimes(0);
-            expect(getUserById).toBeCalledTimes(0);
+            expect(mockedAuthService.validateSiteToken).toBeCalledTimes(0);
+            expect(mockedUserService.getUserById).toBeCalledTimes(0);
         });
     });
 
-    describe('AuthScopes: User', () => {
-        const endpointUserScopes: EndpointProvider<AuthScopes.User, void, ScopeTestEndpointReturnValue> = {
-            auth: AuthScopes.User,
-            permissionsRequired: null,
-            applyToRoute({ auth, user, authService, userService, serverService }) {
-                return (_req, res) =>
-                    res.status(200).send({
-                        auth: !!auth,
-                        user: !!user,
-                        authService: !!authService,
-                        userService: !!userService,
-                        serverService: !!serverService,
-                    });
-            },
-        };
-
-        const app = stubApp(config, [], [siteErrorHandler], withScopes(endpointUserScopes, config, services));
+    describe(AuthScopes[AuthScopes.User], () => {
+        const app = stubApp(mockedConfig, [], [siteErrorHandler], makeScopedEndpoint(AuthScopes.User));
 
         it('throws an AuthError when token validation fails', async () => {
-            validateSiteToken.mockImplementationOnce(() => {
+            mockedAuthService.validateSiteToken.mockImplementationOnce(() => {
                 throw new AuthError('', '');
             });
 
             const res = await app.get('/');
 
             expect(res.statusCode).toBe(401);
-            expect(res.body).toEqual({
-                message: expect.any(String),
-                hint: expect.any(String),
-            });
 
-            expect(validateSiteToken).toBeCalledTimes(1);
-            expect(getUserById).toBeCalledTimes(0);
+            expect(mockedAuthService.validateSiteToken).toBeCalledTimes(1);
+            expect(mockedUserService.getUserById).toBeCalledTimes(0);
         });
 
-        it("throws an AccountDeletedError when user doesn't exist", async () => {
-            validateSiteToken.mockReturnValueOnce({ id: 'some id' } as SiteTokenPayload);
-            getUserById.mockImplementationOnce(() => {
-                throw new AccountDeletedError();
+        it("throws an NotFoundError when user doesn't exist", async () => {
+            mockedAuthService.validateSiteToken.mockReturnValueOnce({ id: 'some id' } as SiteTokenPayload);
+            mockedUserService.getUserById.mockImplementationOnce(() => {
+                throw new NotFoundError('user');
             });
 
             const res = await app.get('/');
 
-            expect(res.statusCode).toBe(401);
-            expect(res.body).toEqual({
-                message: expect.any(String),
-                hint: expect.any(String),
-            });
+            expect(res.statusCode).toBe(404);
 
-            expect(validateSiteToken).toBeCalledTimes(1);
-            expect(getUserById).toBeCalledTimes(1);
+            expect(mockedAuthService.validateSiteToken).toBeCalledTimes(1);
+            expect(mockedUserService.getUserById).toBeCalledTimes(1);
         });
 
         it('allows valid tokens to access the route', async () => {
-            validateSiteToken.mockReturnValueOnce({ id: 'some id' } as SiteTokenPayload);
-            getUserById.mockReturnValueOnce(Promise.resolve({} as User<true>));
+            mockedAuthService.validateSiteToken.mockReturnValueOnce({ id: 'some id' } as SiteTokenPayload);
+            mockedUserService.getUserById.mockResolvedValueOnce(mockedUser);
 
             const res = await app.get('/');
 
@@ -278,68 +194,94 @@ describe('withScopes', () => {
             expect(res.body).toEqual<ScopeTestEndpointReturnValue>({
                 auth: true,
                 user: true,
-                authService: true,
-                userService: true,
-                serverService: true,
             });
 
-            expect(validateSiteToken).toBeCalledTimes(1);
-            expect(getUserById).toBeCalledTimes(1);
+            expect(mockedAuthService.validateSiteToken).toBeCalledTimes(1);
+            expect(mockedUserService.getUserById).toBeCalledTimes(1);
         });
     });
 
-    describe('AuthScopes: User (+ PermissionsRequired)', () => {
-        const endpointUserScopes: EndpointProvider<AuthScopes.User, void, ScopeTestEndpointReturnValue> = {
-            auth: AuthScopes.User,
-            permissionsRequired: UserPermissions.Feature | UserPermissions.MakeLotsOfApplications,
-            applyToRoute({ auth, user, authService, userService, serverService }) {
-                return (_req, res) =>
-                    res.status(200).send({
-                        auth: !!auth,
-                        user: !!user,
-                        authService: !!authService,
-                        userService: !!userService,
-                        serverService: !!serverService,
-                    });
-            },
-        };
+    describe(AuthScopes[AuthScopes.User] + ' (+ Permissions Required)', () => {
+        let checkHasPermissions: jest.SpyInstance;
 
-        const app = stubApp(config, [], [siteErrorHandler], withScopes(endpointUserScopes, config, services));
+        beforeAll(() => {
+            checkHasPermissions = jest.spyOn(PermissionService, 'checkHasPermissions');
+        });
 
-        it('rejects users who do not have all the required permissions', async () => {
-            validateSiteToken.mockReturnValueOnce({ id: 'some id' } as SiteTokenPayload);
-            getUserById.mockReturnValueOnce(
-                Promise.resolve({ permissions: UserPermissions.Feature | UserPermissions.ManageServers } as User<true>),
-            );
+        afterAll(() => {
+            checkHasPermissions.mockRestore();
+        });
+
+        const app = stubApp(
+            mockedConfig,
+            [],
+            [siteErrorHandler],
+            makeScopedEndpoint(AuthScopes.User, UserPermissions.ManageUsers),
+        );
+
+        it('throws an AuthError when token validation fails', async () => {
+            mockedAuthService.validateSiteToken.mockImplementationOnce(() => {
+                throw new AuthError('', '');
+            });
+
+            const res = await app.get('/');
+
+            expect(res.statusCode).toBe(401);
+
+            expect(mockedAuthService.validateSiteToken).toBeCalledTimes(1);
+            expect(mockedUserService.getUserById).toBeCalledTimes(0);
+            expect(checkHasPermissions).toBeCalledTimes(0);
+        });
+
+        it("throws an NotFoundError when user doesn't exist", async () => {
+            mockedAuthService.validateSiteToken.mockReturnValueOnce({ id: 'some id' } as SiteTokenPayload);
+            mockedUserService.getUserById.mockImplementationOnce(() => {
+                throw new NotFoundError('user');
+            });
+
+            const res = await app.get('/');
+
+            expect(res.statusCode).toBe(404);
+
+            expect(mockedAuthService.validateSiteToken).toBeCalledTimes(1);
+            expect(mockedUserService.getUserById).toBeCalledTimes(1);
+            expect(checkHasPermissions).toBeCalledTimes(0);
+        });
+
+        it("throws a ForbiddenErrorA when the user doesn't have the required permissions", async () => {
+            mockedAuthService.validateSiteToken.mockReturnValueOnce({ id: 'some id' } as SiteTokenPayload);
+            mockedUserService.getUserById.mockResolvedValueOnce(mockedUser);
+            checkHasPermissions.mockImplementationOnce(() => {
+                throw new ForbiddenError(UserPermissions.None);
+            });
 
             const res = await app.get('/');
 
             expect(res.statusCode).toBe(403);
-            expect(res.body).toEqual({
-                requiredPermissions: expect.arrayContaining([
-                    UserPermissions[UserPermissions.Feature],
-                    UserPermissions[UserPermissions.MakeLotsOfApplications],
-                ]),
-            });
+
+            expect(mockedAuthService.validateSiteToken).toBeCalledTimes(1);
+            expect(mockedUserService.getUserById).toBeCalledTimes(1);
+            expect(checkHasPermissions).toBeCalledTimes(1);
+            expect(checkHasPermissions).toBeCalledWith(mockedUser, UserPermissions.ManageUsers);
         });
-    });
 
-    describe('AuthScopes: Other', () => {
-        const endpointUnknownScopes: EndpointProvider<AuthScopes, void, void> = {
-            auth: -1,
-            permissionsRequired: UserPermissions.Feature | UserPermissions.MakeLotsOfApplications,
-            applyToRoute() {
-                return () => void 0;
-            },
-        };
+        it('allows valid users to access the route', async () => {
+            mockedAuthService.validateSiteToken.mockReturnValueOnce({ id: 'some id' } as SiteTokenPayload);
+            mockedUserService.getUserById.mockResolvedValueOnce(mockedUser);
+            checkHasPermissions.mockReturnValueOnce(true);
 
-        it('throws an error on creation', () => {
-            try {
-                withScopes(endpointUnknownScopes, config, services);
-                fail('should have thrown an error');
-            } catch (error) {
-                expect(error).toBeInstanceOf(Error);
-            }
+            const res = await app.get('/');
+
+            expect(res.statusCode).toBe(200);
+            expect(res.body).toEqual<ScopeTestEndpointReturnValue>({
+                auth: true,
+                user: true,
+            });
+
+            expect(mockedAuthService.validateSiteToken).toBeCalledTimes(1);
+            expect(mockedUserService.getUserById).toBeCalledTimes(1);
+            expect(checkHasPermissions).toBeCalledTimes(1);
+            expect(checkHasPermissions).toBeCalledWith(mockedUser, UserPermissions.ManageUsers);
         });
     });
 });

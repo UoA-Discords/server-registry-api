@@ -4,6 +4,6 @@ import { UserService } from '../../services/UserService';
 
 export interface AppServices {
     authService: AuthService;
-    userService: UserService;
     serverService: ServerService;
+    userService: UserService;
 }

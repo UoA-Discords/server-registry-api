@@ -1,17 +1,14 @@
-import { Response } from 'express';
 import { SiteError } from './SiteError';
 
+/**
+ * Error thrown when a user's site token (JWT) is missing or invalid.
+ *
+ * Has status code 401 (Unauthorized), since the user has failed authentication.
+ */
 export class AuthError extends SiteError {
-    public readonly message: string;
-    public readonly hint: string;
+    public readonly statusCode = 401;
 
-    public constructor(message: string, hint: string) {
-        super();
-        this.message = message;
-        this.hint = hint;
-    }
-
-    public send(res: Response): void {
-        res.status(401).json({ message: this.message, hint: this.hint });
+    public constructor(title: string, description: string) {
+        super(title, description, undefined);
     }
 }

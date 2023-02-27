@@ -1,4 +1,4 @@
-import { RequestHandler, ErrorRequestHandler } from 'express';
+import { ErrorRequestHandler, RequestHandler } from 'express';
 import { Config } from '../Config';
 
 export type MiddlewareProvider = (

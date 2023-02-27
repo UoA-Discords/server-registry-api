@@ -5,7 +5,7 @@ import { UserChangeRecord } from './UserChangeRecord';
 import { UserPermissions } from './UserPermissions';
 
 /** Shape of a user in our database. */
-export interface User<FullInfo extends boolean> {
+export interface User<TPrivacy extends 'ShowIP' | 'HideIP' = 'ShowIP'> {
     /** This is underscored to show that it is used as a document index in MongoDB. */
     _id: DiscordIdString;
 
@@ -22,7 +22,7 @@ export interface User<FullInfo extends boolean> {
 
     metaData: {
         /** These are never shown to anyone besides {@link UserPermissions.Owner Owners} for administration purposes. */
-        latestIp: FullInfo extends true ? string : string | null;
+        latestIp: TPrivacy extends 'ShowIP' ? string : string | null;
 
         registered: ISOString;
 

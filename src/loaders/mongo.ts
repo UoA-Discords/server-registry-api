@@ -3,7 +3,7 @@ import { ServerModel } from '../models/ServerModel';
 import { UserModel } from '../models/UserModel';
 import { Config } from '../types/Config';
 
-export async function loadMongo(config: Config): Promise<[UserModel, ServerModel]> {
+export async function loadMongo(config: Config): Promise<[UserModel, ServerModel, MongoClient]> {
     if (config.mongoDbName.length > 38) {
         throw new Error(`Mongo DB name cannot be more than 38 bytes (configured is ${config.mongoDbName.length})`);
     }
@@ -20,5 +20,5 @@ export async function loadMongo(config: Config): Promise<[UserModel, ServerModel
         serverModel.createIndex({ 'guildData.name': 'text' }),
     ]);
 
-    return [userModel, serverModel];
+    return [userModel, serverModel, mongoClient];
 }

@@ -1,12 +1,9 @@
 import { RequestHandler } from 'express';
-import { Config } from '../Config';
 import { SiteTokenPayload } from '../Auth/SiteTokenPayload';
+import { Config } from '../Config';
+import { AppServices } from '../Services';
 import { User } from '../User';
 import { UserPermissions } from '../User/UserPermissions';
-import { AuthService } from '../../services/AuthService';
-import { UserService } from '../../services/UserService';
-import { ServerService } from '../../services/ServerService';
-import { AppServices } from '../Services/AppServices';
 
 /** Endpoint handler with typed request body and response types. */
 export type EndpointProviderReturnValue<
@@ -54,10 +51,7 @@ interface EndpointProviderParams<TAuth extends AuthScopes> extends AppServices {
         : TAuth extends AuthScopes.OptionalUser
         ? null | SiteTokenPayload
         : SiteTokenPayload;
-    user: TAuth extends AuthScopes.User ? User<true> : TAuth extends AuthScopes.OptionalUser ? null | User<true> : null;
-    authService: AuthService;
-    userService: UserService;
-    serverService: ServerService;
+    user: TAuth extends AuthScopes.User ? User : TAuth extends AuthScopes.OptionalUser ? null | User : null;
 }
 
 export interface EndpointProvider<
@@ -79,7 +73,7 @@ export interface EndpointProvider<
         auth,
         user,
         authService,
-        userService,
         serverService,
+        userService,
     }: EndpointProviderParams<TAuth>) => EndpointProviderReturnValue<TRequest, TResponse, TPathParams, TQueryParams>;
 }

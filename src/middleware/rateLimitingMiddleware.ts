@@ -1,8 +1,7 @@
 import rateLimit from 'express-rate-limit';
-import { Config } from '../types/Config';
 import { MiddlewareProvider } from '../types/Express/MiddlewareProvider';
 
-export const rateLimitingMiddleware: MiddlewareProvider = (config: Config) => {
+export const rateLimitingMiddleware: MiddlewareProvider = (config) => {
     const { maxRequestsPerMinute, rateLimitBypassTokens } = config;
 
     return rateLimit({

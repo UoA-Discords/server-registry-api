@@ -1,5 +1,5 @@
 import { LoginOrSignupResponse } from '../../types/Auth/LoginOrSignupResponse';
-import { AuthScopes, EndpointProvider } from '../../types/Express/EndpointProvider';
+import { EndpointProvider, AuthScopes } from '../../types/Express/EndpointProvider';
 
 interface PostLoginRequest {
     code: string;

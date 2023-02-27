@@ -1,8 +1,8 @@
-import { RESTPostOAuth2AccessTokenResult } from 'discord-api-types/v10';
+import { RESTPostOAuth2AccessTokenResult } from 'discord-api-types/rest/v10/oauth2';
 import { User } from '../User';
 
 export interface LoginOrSignupResponse {
-    user: User<true>;
+    user: User;
     discordAuth: RESTPostOAuth2AccessTokenResult;
     siteAuth: string;
 }
