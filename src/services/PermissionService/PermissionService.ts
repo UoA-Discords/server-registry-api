@@ -13,6 +13,9 @@ import { UserPermissions } from '../../types/User/UserPermissions';
  * - Validating the permissions of a permissions change ({@link checkCanChangePermissionsTo}).
  * - Validating a server status change ({@link validateServerStatusChange}).
  *
+ * Note that these methods do not check the base permissions of a conductor, as that should be done through the
+ * `requiredPermissions` property of the endpoint provider.
+ *
  * Interactions with this service may throw any of the following errors:
  * - {@link ForbiddenError}
  */
@@ -86,9 +89,6 @@ export abstract class PermissionService {
      * {@link checkCanChangePermissionsTo}.
      */
     public static checkCanEditPermissionsOf(conductor: User, targetUser: User): void {
-        // if you don't have `ManageUsers` permission, you can't edit anyone
-        this.checkHasPermissions(conductor, UserPermissions.ManageUsers);
-
         // you can always edit yourself
         if (conductor._id === targetUser._id) return;
 
@@ -113,8 +113,6 @@ export abstract class PermissionService {
         oldStatus: ServerStatus,
         newStatus: ServerStatus,
     ): ServerStatusAction {
-        this.checkHasPermissions(conductor, UserPermissions.ManageServers);
-
         switch (oldStatus) {
             case ServerStatus.Pending:
                 switch (newStatus) {

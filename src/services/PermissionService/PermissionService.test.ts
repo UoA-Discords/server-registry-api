@@ -102,10 +102,6 @@ describe('PermissionService', () => {
     });
 
     describe(PermissionService.checkCanEditPermissionsOf.name, () => {
-        it("throws a ForbiddenError when the conductor does not have the 'Manage Users' permission", () => {
-            expect(() => PermissionService.checkCanEditPermissionsOf(normalUser, normalUser)).toThrow(ForbiddenError);
-        });
-
         it("passes when a user with the 'Manage Users' permission is editing themselves", () => {
             PermissionService.checkCanEditPermissionsOf(adminUser, adminUser);
         });
@@ -129,15 +125,6 @@ describe('PermissionService', () => {
                 ServerStatus.Withdrawn,
                 ServerStatus.Featured,
             ].filter((s) => !relevantStatuses.includes(s));
-
-        it("throws a ForbiddenError if the conductor does not have the 'ManageServers' permission", () => {
-            try {
-                PermissionService.validateServerStatusChange(normalUser, ServerStatus.Pending, ServerStatus.Public);
-                fail('should have thrown an error');
-            } catch (error) {
-                expect(error).toBeInstanceOf(ForbiddenError);
-            }
-        });
 
         describe('pending servers', () => {
             const determine = (newStatus: ServerStatus) =>
