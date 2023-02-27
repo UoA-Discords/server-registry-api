@@ -1,12 +1,16 @@
-import { HttpError } from 'express-openapi-validator/dist/framework/types';
+import { Response } from 'express';
+import { HttpError, ValidationErrorItem } from 'express-openapi-validator/dist/framework/types';
+import { SiteErrorObject } from '../errors/SiteError';
 import { MiddlewareProvider } from '../types/Express/MiddlewareProvider';
 
 /** Custom error messages for OpenAPI validation errors. */
-export const validatorErrorHandler: MiddlewareProvider = () => (err, _req, res, next) => {
-    if (err instanceof HttpError) {
-        res.status(err.status).json({
-            message: err.message,
-            errors: err.errors,
-        });
-    } else next(err);
-};
+export const validatorErrorHandler: MiddlewareProvider =
+    () => (err, _req, res: Response<SiteErrorObject<ValidationErrorItem[]>>, next) => {
+        if (err instanceof HttpError) {
+            res.status(400).json({
+                title: 'Bad Request',
+                description: err.description || 'Your client made an invalid request to the API.',
+                additionalData: err.errors,
+            });
+        } else next(err);
+    };

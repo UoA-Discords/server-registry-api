@@ -1,11 +1,10 @@
 import { Request } from 'express';
-import { ForbiddenError } from '../errors/ForbiddenError';
 import { AuthService } from '../services/AuthService';
-import { UserService } from '../services/UserService';
+import { PermissionService } from '../services/PermissionService';
 import { SiteTokenPayload } from '../types/Auth/SiteTokenPayload';
 import { Config } from '../types/Config';
 import { EndpointProvider, AuthScopes, EndpointProviderReturnValue } from '../types/Express/EndpointProvider';
-import { AppServices } from '../types/Services/AppServices';
+import { AppServices } from '../types/Services';
 
 export function withOptionalAuth(
     authService: AuthService,
@@ -28,8 +27,6 @@ export function withScopes<T extends EndpointProvider<AuthScopes, any, any, any,
     const params = { config, ...services };
 
     switch (provider.auth) {
-        case AuthScopes.None:
-            return (req, res, next) => provider.applyToRoute({ ...params, auth: null, user: null })(req, res, next);
         case AuthScopes.TokenOnly:
             return (req, res, next) => {
                 const auth = authService.validateSiteToken(req.get('Authorization'));
@@ -40,7 +37,7 @@ export function withScopes<T extends EndpointProvider<AuthScopes, any, any, any,
                 try {
                     const auth = withOptionalAuth(authService, req);
                     if (auth === null) return provider.applyToRoute({ ...params, auth, user: null })(req, res, next);
-                    const user = await userService.getUserById(auth.id, true);
+                    const user = await userService.getUserById(auth.id);
                     return provider.applyToRoute({ ...params, auth, user })(req, res, next);
                 } catch (error) {
                     return next(error);
@@ -50,19 +47,17 @@ export function withScopes<T extends EndpointProvider<AuthScopes, any, any, any,
             return async (req, res, next) => {
                 try {
                     const auth = authService.validateSiteToken(req.get('Authorization'));
-                    const user = await userService.getUserById(auth.id, true);
-                    if (
-                        provider.permissionsRequired !== null &&
-                        !UserService.hasPermission(user, provider.permissionsRequired)
-                    ) {
-                        throw new ForbiddenError(provider.permissionsRequired);
+                    const user = await userService.getUserById(auth.id);
+                    if (provider.permissionsRequired !== null) {
+                        PermissionService.checkHasPermissions(user, provider.permissionsRequired);
                     }
                     return provider.applyToRoute({ ...params, auth, user })(req, res, next);
                 } catch (error) {
                     return next(error);
                 }
             };
+        case AuthScopes.None:
         default:
-            throw new Error(`Unrecognized auth scope ${provider.auth}`);
+            return (req, res, next) => provider.applyToRoute({ ...params, auth: null, user: null })(req, res, next);
     }
 }

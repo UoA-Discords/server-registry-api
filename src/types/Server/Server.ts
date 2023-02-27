@@ -1,6 +1,6 @@
 import { APIUser, GuildVerificationLevel } from 'discord-api-types/v10';
 import { DiscordIdString, ISOString } from '../Utility';
-import { EntryFacultyTags } from './EntryFacultyTags';
+import { ServerTags } from './ServerTags';
 import { ServerChangeRecord } from './ServerChangeRecord';
 import { ServerStatus } from './ServerStatus';
 
@@ -45,7 +45,7 @@ export interface Server {
         at: ISOString;
     };
 
-    entryFacultyTags: EntryFacultyTags;
+    serverTags: ServerTags;
 
     statusLog: ServerChangeRecord[];
 

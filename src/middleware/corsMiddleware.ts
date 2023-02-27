@@ -1,9 +1,8 @@
 import cors from 'cors';
 import { CorsError } from '../errors/CorsError';
-import { Config } from '../types/Config';
 import { MiddlewareProvider } from '../types/Express/MiddlewareProvider';
 
-export const corsMiddleware: MiddlewareProvider = ({ clientUrls }: Config) => {
+export const corsMiddleware: MiddlewareProvider = ({ clientUrls }) => {
     return cors({
         origin: clientUrls.has('*')
             ? '*'

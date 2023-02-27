@@ -8,7 +8,7 @@ import { ServerService } from '../src/services/ServerService';
 import { UserService } from '../src/services/UserService';
 import { InviteData } from '../src/types/Invite';
 import { Server } from '../src/types/Server';
-import { EntryFacultyTags } from '../src/types/Server/EntryFacultyTags';
+import { ServerTags } from '../src/types/Server/ServerTags';
 import { ServerStatus } from '../src/types/Server/ServerStatus';
 import { User } from '../src/types/User';
 import { DiscordIdString } from '../src/types/Utility';
@@ -46,8 +46,8 @@ function makeRandomDiscriminator(): string {
         .padStart(4, '0');
 }
 
-function randomFacultyTags(): EntryFacultyTags {
-    return Math.floor(Math.random() * ((1 << 12) - 1));
+function randomServerTags(): ServerTags {
+    return Math.floor(Math.random() * ((1 << 13) - 1));
 }
 
 function randomCode() {
@@ -64,7 +64,7 @@ function randomChance(p: number) {
     return Math.random() < p;
 }
 
-async function makeDummyServer(serverService: ServerService, creator: User<true>, i: number): Promise<Server> {
+async function makeDummyServer(serverService: ServerService, creator: User, i: number): Promise<Server> {
     const serverInfo: Partial<Pick<InviteData, 'inviter' | 'approximate_member_count' | 'approximate_presence_count'>> =
         {};
 
@@ -108,33 +108,33 @@ async function makeDummyServer(serverService: ServerService, creator: User<true>
             },
             channel: null,
         },
-        randomFacultyTags(),
+        randomServerTags(),
     );
 }
 
-async function approveServer(serverService: ServerService, server: Server, approver: User<true>): Promise<void> {
+async function approveServer(serverService: ServerService, server: Server, approver: User): Promise<void> {
     await serverService.changeServerStatus(approver, server._id, ServerStatus.Public, 'Approved by script');
 }
 
-async function rejectServer(serverService: ServerService, server: Server, rejecter: User<true>): Promise<void> {
+async function rejectServer(serverService: ServerService, server: Server, rejecter: User): Promise<void> {
     await serverService.changeServerStatus(rejecter, server._id, ServerStatus.Rejected, 'Rejected by script');
 }
 
-async function featureServer(serverService: ServerService, server: Server, featurer: User<true>): Promise<void> {
+async function featureServer(serverService: ServerService, server: Server, featurer: User): Promise<void> {
     await serverService.changeServerStatus(featurer, server._id, ServerStatus.Featured, 'Featured by script');
 }
 
-async function withdrawServer(serverService: ServerService, server: Server, withdrawer: User<true>): Promise<void> {
+async function withdrawServer(serverService: ServerService, server: Server, withdrawer: User): Promise<void> {
     await serverService.changeServerStatus(withdrawer, server._id, ServerStatus.Withdrawn, 'Withdrawn by script');
 }
 
-async function makeDummyUser(userService: UserService, i: number): Promise<User<true>> {
+async function makeDummyUser(userService: UserService, i: number): Promise<User> {
     const ip = new Array(4)
         .fill(0)
         .map(() => Math.floor(Math.random() * 255))
         .join('.');
 
-    return await userService.registerNewUser(
+    return await userService.createNewUser(
         {
             id: makeRandomId(i),
             username: `User ${i}`,

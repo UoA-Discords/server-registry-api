@@ -1,18 +1,15 @@
-import { Response } from 'express';
 import { SiteError } from './SiteError';
 
+/**
+ * Error thrown when a server or user does not exist in the database.
+ *
+ * Has status code 404 (Not Found), since the user has requested a resource that does not exist.
+ */
 export class NotFoundError extends SiteError {
-    public readonly type: 'server' | 'user';
-
+    public readonly statusCode = 404;
     public constructor(type: 'server' | 'user') {
-        super();
-        this.type = type;
-    }
+        const capitalType = type[0].toUpperCase() + type.slice(1);
 
-    public send(res: Response): void {
-        res.status(404).json({
-            message: `${this.type[0].toUpperCase() + this.type.slice(1)} Not Found`,
-            hint: `A ${this.type} with this ID does not exist in the database.`,
-        });
+        super(`${capitalType} Not Found`, `A ${type} with this ID does not exist in the database.`, undefined);
     }
 }

@@ -1,24 +1,16 @@
-import { APIUser } from 'discord-api-types/payloads/v10/user';
 import { defaultUser } from '../defaults/defaultUser';
 import { User } from '../types/User';
 
-export const mockedAPIUser: APIUser = {
-    id: 'test Discord id',
-    username: 'test Discord username',
-    discriminator: 'test Discord discriminator',
-    avatar: 'test Discord avatar',
-};
-
-export const mockedUser: User<true> = {
+export const mockedUser: User = {
     ...defaultUser,
-    _id: 'test user id',
+    _id: 'mockedUser._id',
     discord: {
-        username: 'test user discord username',
-        discriminator: 'test user discord discriminator',
-        avatar: 'test user discord avatar',
+        username: 'mockedUser.discord.username',
+        discriminator: 'mockedUser.discord.discriminator',
+        avatar: 'mockedUser.discord.avatar',
     },
     metaData: {
-        latestIp: 'test user latest IP',
+        latestIp: 'mockedUser.metaData.latestIp',
         registered: new Date().toISOString(),
         lastLoginOrRefresh: new Date().toISOString(),
     },

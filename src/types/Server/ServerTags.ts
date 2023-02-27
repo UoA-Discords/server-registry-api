@@ -7,7 +7,9 @@
  *
  * These values (mostly) come from https://www.auckland.ac.nz/en/study/our-faculties.html
  */
-export enum EntryFacultyTags {
+export enum ServerTags {
+    None = 0,
+
     /** Humanities, social sciences, languages, and indigenous studies. */
     Arts = 1 << 0,
 
@@ -39,4 +41,7 @@ export enum EntryFacultyTags {
     Science = 1 << 10,
 
     Statistics = 1 << 11,
+
+    /** [Custom] Partnered with the UoA Discords organization. */
+    Partnered = 1 << 12,
 }

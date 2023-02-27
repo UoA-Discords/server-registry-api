@@ -1,10 +1,9 @@
-import { mockConfig } from '../tests/mockConfig';
 import { stubApp } from '../tests/stubApp';
 import { corsMiddleware } from './corsMiddleware';
 
 describe('corsMiddleware', () => {
     describe('wildcard ["*"] whitelist', () => {
-        const app = stubApp(mockConfig({ clientUrls: new Set(['*']) }), [corsMiddleware]);
+        const app = stubApp({ clientUrls: new Set(['*']) }, [corsMiddleware]);
 
         it('always allows undefined origin', async () => {
             const response = await app.get('/').send();
@@ -28,7 +27,7 @@ describe('corsMiddleware', () => {
     });
 
     describe('static whitelist', () => {
-        const app = stubApp(mockConfig({ clientUrls: new Set(['https://example.com']) }), [corsMiddleware]);
+        const app = stubApp({ clientUrls: new Set(['https://example.com']) }, [corsMiddleware]);
 
         it('always allows undefined origin', async () => {
             const response = await app.get('/').send();
@@ -39,7 +38,7 @@ describe('corsMiddleware', () => {
         it("doesn't allow non-whitelisted origins", async () => {
             const response = await app.get('/').set('origin', 'https://google.com').send();
 
-            expect(response.statusCode).toBe(500);
+            expect(response.statusCode).toBe(400);
         });
 
         it('allows whitelisted origins', async () => {

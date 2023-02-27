@@ -2,18 +2,18 @@ import { InviteData } from '../types/Invite';
 
 export const mockedInviteData: InviteData = {
     guild: {
-        banner: 'test server banner',
-        description: 'test server description',
+        banner: 'mockedInviteData.guild.banner',
+        description: 'mockedInviteData.guild.description',
         features: [],
-        icon: 'test server icon',
-        id: 'test server id',
-        name: 'test server name',
+        icon: 'mockedInviteData.guild.icon',
+        id: 'mockedInviteData.guild.id',
+        name: 'mockedInviteData.guild.name',
         nsfw_level: 0,
-        splash: 'test server splash',
+        splash: null,
         vanity_url_code: null,
         verification_level: 0,
         premium_subscription_count: 0,
     },
-    code: 'test server invite code',
+    code: 'mockedInviteData.code',
     channel: null,
 };

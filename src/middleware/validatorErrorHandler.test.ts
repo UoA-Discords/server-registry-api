@@ -1,7 +1,7 @@
 import express from 'express';
 import { HttpError } from 'express-openapi-validator/dist/framework/types';
 import request from 'supertest';
-import { mockConfig } from '../tests/mockConfig';
+import { mockedConfig } from '../tests/mockedConfig';
 import { validatorErrorHandler } from './validatorErrorHandler';
 
 describe('validatorErrorHandler', () => {
@@ -12,11 +12,11 @@ describe('validatorErrorHandler', () => {
             throw new HttpError({ name: '', path: '', status: 401 });
         });
 
-        app.use(validatorErrorHandler(mockConfig()));
+        app.use(validatorErrorHandler(mockedConfig));
 
         const res = await request(app).get('/').send();
 
-        expect(res.statusCode).toBe(401);
+        expect(res.statusCode).toBe(400);
     });
 
     it('skips other Errors', async () => {
@@ -26,7 +26,7 @@ describe('validatorErrorHandler', () => {
             throw new Error();
         });
 
-        app.use(validatorErrorHandler(mockConfig()));
+        app.use(validatorErrorHandler(mockedConfig));
 
         const res = await request(app).get('/').send();
 

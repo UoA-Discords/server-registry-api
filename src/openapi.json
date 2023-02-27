@@ -42,6 +42,9 @@
                             }
                         }
                     },
+                    "400": {
+                        "$ref": "#/components/responses/BadRequestError400"
+                    },
                     "429": {
                         "$ref": "#/components/responses/RateLimited429"
                     }
@@ -76,6 +79,9 @@
                             }
                         }
                     },
+                    "400": {
+                        "$ref": "#/components/responses/BadRequestError400"
+                    },
                     "429": {
                         "$ref": "#/components/responses/RateLimited429"
                     }
@@ -96,6 +102,9 @@
                                 "example": "123.123.123.123"
                             }
                         }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/BadRequestError400"
                     },
                     "429": {
                         "$ref": "#/components/responses/RateLimited429"
@@ -179,6 +188,9 @@
                             }
                         }
                     },
+                    "400": {
+                        "$ref": "#/components/responses/BadRequestError400"
+                    },
                     "429": {
                         "$ref": "#/components/responses/RateLimited429"
                     },
@@ -204,8 +216,14 @@
                             }
                         }
                     },
+                    "400": {
+                        "$ref": "#/components/responses/BadRequestError400"
+                    },
                     "401": {
                         "$ref": "#/components/responses/AuthError401"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFoundError404"
                     },
                     "429": {
                         "$ref": "#/components/responses/RateLimited429"
@@ -225,179 +243,20 @@
                     "200": {
                         "description": "Successfully logged out."
                     },
-                    "429": {
-                        "$ref": "#/components/responses/RateLimited429"
-                    },
-                    "502": {
-                        "$ref": "#/components/responses/SecondaryRequestError502"
-                    }
-                }
-            }
-        },
-        "/users": {
-            "get": {
-                "tags": ["User Management"],
-                "security": [{ "siteToken": [], "rateLimitBypassToken": [] }, { "siteToken": [] }],
-                "operationId": "getAllUsers",
-                "description": "Gets all users, this is under the management tag as getting all user information is only something those with the `ManageUsers` permission can do.",
-                "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Page"
-                    },
-                    {
-                        "$ref": "#/components/parameters/PerPage"
-                    },
-                    {
-                        "in": "query",
-                        "name": "username",
-                        "schema": {
-                            "type": "string",
-                            "description": "Username to search for."
-                        },
-                        "required": false
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Paginated users array.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "totalItemCount": {
-                                            "$ref": "#/components/schemas/PaginationReturnedItemCount"
-                                        },
-                                        "items": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/User"
-                                            }
-                                        }
-                                    },
-                                    "additionalProperties": false,
-                                    "required": ["totalItemCount", "items"]
-                                }
-                            }
-                        }
+                    "400": {
+                        "$ref": "#/components/responses/BadRequestError400"
                     },
                     "401": {
                         "$ref": "#/components/responses/AuthError401"
-                    },
-                    "403": {
-                        "$ref": "#/components/responses/ForbiddenError403"
-                    },
-                    "429": {
-                        "$ref": "#/components/responses/RateLimited429"
-                    }
-                }
-            },
-            "post": {
-                "tags": ["User Listing"],
-                "security": [
-                    {},
-                    { "siteToken": [] },
-                    { "rateLimitBypassToken": [] },
-                    { "siteToken": [], "rateLimitBypassToken": [] }
-                ],
-                "operationId": "getSpecificUsers",
-                "description": "Gets a list of users.",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "userIds": {
-                                        "type": "array",
-                                        "items": {
-                                            "$ref": "#/components/schemas/DiscordIDString"
-                                        },
-                                        "maxItems": 100
-                                    }
-                                },
-                                "additionalProperties": false,
-                                "required": ["userIds"]
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Users array.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/User"
-                                    },
-                                    "maxItems": 100
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/AuthError401"
-                    },
-                    "429": {
-                        "$ref": "#/components/responses/RateLimited429"
-                    }
-                }
-            }
-        },
-        "/users/{id}": {
-            "parameters": [{ "$ref": "#/components/parameters/DiscordID" }],
-            "patch": {
-                "tags": ["User Management"],
-                "security": [{ "siteToken": [], "rateLimitBypassToken": [] }, { "siteToken": [] }],
-                "operationId": "patchUserPermissions",
-                "description": "Modifies the target user's permissions, note you need to have `Owner` or `Manage Users` permissions to do this.",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "newPermissions": {
-                                        "$ref": "#/components/schemas/UserPermissions"
-                                    },
-                                    "reason": {
-                                        "type": "string",
-                                        "nullable": true,
-                                        "example": "Promoted to site moderator."
-                                    }
-                                },
-                                "additionalProperties": false,
-                                "required": ["newPermissions", "reason"]
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Updated user object.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/User"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/AuthError401"
-                    },
-                    "403": {
-                        "$ref": "#/components/responses/ForbiddenError403"
                     },
                     "404": {
                         "$ref": "#/components/responses/NotFoundError404"
                     },
                     "429": {
                         "$ref": "#/components/responses/RateLimited429"
+                    },
+                    "502": {
+                        "$ref": "#/components/responses/SecondaryRequestError502"
                     }
                 }
             }
@@ -458,21 +317,19 @@
                         "$ref": "#/components/schemas/DiscordIDString"
                     },
                     "access_token": {
-                        "type": "string",
-                        "description": "The Discord OAuth2 access token of the requester.<br />This is used to make elevated requests to the Discord API on behalf of this user.<br />Since we only require the 'Identify' scope, the only requests we can make are to:<br />- Terminate the current OAuth session (revoke).<br />- Get basic user info (ID, username, profile picture, etc...)"
+                        "type": "string"
                     },
                     "refresh_token": {
-                        "type": "string",
-                        "description": "The Discord OAuth2 refresh token of the requester.<br />This can be used to extend the user's current OAuth session."
+                        "type": "string"
                     }
                 },
                 "required": ["id", "access_token", "refresh_token"],
                 "additionalProperties": false
             },
-            "EntryFacultyTags": {
+            "ServerTags": {
                 "type": "integer",
                 "minimum": 0,
-                "maximum": 4095,
+                "maximum": 8191,
                 "description": "Tags for servers that describe the general faculty/faculties they pertain to.<br />Servers can have any combination of these tags, as long as they are somewhat relevant.<br />These values (mostly) come from [here](https://www.auckland.ac.nz/en/study/our-faculties.html)."
             },
             "ServerChangeRecord": {
@@ -613,75 +470,91 @@
                 "type": "string",
                 "description": "A Discord ID.",
                 "example": "909645967081476147"
+            },
+            "SiteErrorObject": {
+                "type": "object",
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "description": "The error described in a few words, should all be capitalized (e.g. `Failed to Fetch User`)."
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "A sentence that explains how the error occurred (e.g. `A user with this ID does not exist in the database.`)."
+                    }
+                },
+                "required": ["title", "description"]
             }
         },
         "responses": {
-            "AuthError401": {
-                "description": "Authentication failed.",
+            "BadRequestError400": {
+                "description": "Error thrown when a request is malformed or otherwise an invalid shape. This can also be thrown when a request's origin header is present and now in the allowed origins whitelist (CORS error).",
                 "content": {
                     "application/json": {
                         "schema": {
                             "type": "object",
+                            "allOf": [{ "$ref": "#/components/schemas/SiteErrorObject" }],
                             "properties": {
-                                "message": {
-                                    "type": "string",
-                                    "example": "Invalid Token Payload Type"
-                                },
-                                "hint": {
-                                    "type": "string",
-                                    "example": "Missing refresh_token (expected string, got undefined)."
+                                "additionalData": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "path": {
+                                                "type": "string",
+                                                "example": "/refresh"
+                                            },
+                                            "message": {
+                                                "type": "string",
+                                                "example": "Authorization header with scheme 'Bearer' required"
+                                            },
+                                            "error_code": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "required": ["path", "message"],
+                                        "additionalProperties": false
+                                    }
                                 }
-                            },
-                            "required": ["message", "hint"],
-                            "additionalProperties": false
+                            }
                         }
                     }
                 }
             },
+            "AuthError401": {
+                "description": "Error thrown when a user's site token (JWT) is missing or invalid.",
+                "content": {
+                    "application/json": {
+                        "schema": { "$ref": "#/components/schemas/SiteErrorObject" }
+                    }
+                }
+            },
             "ForbiddenError403": {
-                "description": "User lacks permission(s) to carry out this action.",
+                "description": "Error thrown when a user does not have the required permissions to do an attempted action, or the action is impossible (e.g. a user removing the owner permission from themselves) regardless of permissions.",
                 "content": {
                     "application/json": {
                         "schema": {
                             "type": "object",
+                            "allOf": [{ "$ref": "#/components/schemas/SiteErrorObject" }],
                             "properties": {
-                                "requiredPermissions": {
+                                "additionalData": {
                                     "type": "array",
                                     "items": {
                                         "type": "string"
                                     },
-                                    "example": ["Favourite", "ManageServers", "Feature"]
-                                },
-                                "message": {
-                                    "type": "string",
-                                    "example": "This user also has the `Manage Users` permission, so you cannot modify them."
+                                    "description": "Names of the missing permissions."
                                 }
                             },
-                            "required": ["requiredPermissions"],
-                            "additionalProperties": false
+                            "required": ["additionalData"]
                         }
                     }
                 }
             },
             "NotFoundError404": {
-                "description": "The requested resource was not found.",
+                "description": "Error thrown when a server or user does not exist in the database.",
                 "content": {
                     "application/json": {
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "message": {
-                                    "type": "string",
-                                    "example": "User Not Found"
-                                },
-                                "hint": {
-                                    "type": "string",
-                                    "example": "A user with this ID does not exist in the database."
-                                }
-                            },
-                            "required": ["message", "hint"],
-                            "additionalProperties": false
-                        }
+                        "schema": { "$ref": "#/components/schemas/SiteErrorObject" }
                     }
                 }
             },
@@ -719,58 +592,26 @@
                 }
             },
             "SecondaryRequestError502": {
-                "description": "A call to another API made by the server failed.",
+                "description": "Error thrown when an API call made by the server to another server fails.",
                 "content": {
                     "application/json": {
                         "schema": {
                             "type": "object",
+                            "allOf": [{ "$ref": "#/components/schemas/SiteErrorObject" }],
                             "properties": {
-                                "message": {
-                                    "type": "string",
-                                    "example": "Failed to refresh access token"
-                                },
-                                "hint": {
-                                    "type": "string",
-                                    "example": "Supplied refresh token is invalid."
-                                },
-                                "receivedStatusCode": {
-                                    "anyOf": [
-                                        { "type": "integer", "description": "Received HTTP status code." },
-                                        { "type": "string", "default": "Unknown" }
-                                    ]
+                                "additionalData": {
+                                    "type": "integer",
+                                    "nullable": true,
+                                    "description": "Received HTTP status code of the secondary request."
                                 }
                             },
-                            "required": ["message", "hint", "receivedStatusCode"],
-                            "additionalProperties": false
+                            "required": ["additionalData"]
                         }
                     }
                 }
             }
         },
         "parameters": {
-            "Page": {
-                "in": "query",
-                "name": "page",
-                "schema": {
-                    "type": "integer",
-                    "minimum": 0,
-                    "example": 0,
-                    "description": "Page number, starts at 0."
-                },
-                "required": true
-            },
-            "PerPage": {
-                "in": "query",
-                "name": "perPage",
-                "schema": {
-                    "type": "integer",
-                    "minimum": 1,
-                    "maximum": 100,
-                    "example": 20,
-                    "description": "Number of items per page."
-                },
-                "required": true
-            },
             "DiscordID": {
                 "in": "path",
                 "name": "id",
@@ -801,24 +642,20 @@
             "description": "Miscellaneous functionality."
         },
         {
-            "name": "User Management",
-            "description": "Managing and fetching users."
-        },
-        {
-            "name": "Server Management",
-            "description": "Managing servers."
-        },
-        {
             "name": "Auth",
             "description": "Logging in, logging out, and refreshing."
         },
         {
-            "name": "Server Listing",
-            "description": "Fetching, submitting and searching servers."
+            "name": "User Management",
+            "description": "Managing and fetching users. These endpoints require the `ManageUsers` permission."
         },
         {
-            "name": "User Listing",
-            "description": "Fetching and searching users."
+            "name": "Server Management",
+            "description": "Managing servers. These endpoints require the `ManageServers` permission."
+        },
+        {
+            "name": "Registry",
+            "description": "Listing, searching, and submitting servers to/from the registry, as well as listing and searching users."
         }
     ]
 }

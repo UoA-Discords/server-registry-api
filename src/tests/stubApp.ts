@@ -1,20 +1,20 @@
 import request from 'supertest';
 import express from 'express';
-import { MiddlewareProvider } from '../types/Express/MiddlewareProvider';
+import { mockedConfig } from './mockedConfig';
 import { Config } from '../types/Config';
-import { mockConfig } from './mockConfig';
 import { EndpointProviderReturnValue } from '../types/Express/EndpointProvider';
+import { MiddlewareProvider } from '../types/Express/MiddlewareProvider';
 
 /** Creates a stub Express app which responds with status code 200 for `GET /` */
 export function stubApp(
-    config?: Config,
+    partialConfig?: Partial<Config>,
     preRouteMiddlewares?: MiddlewareProvider[],
     postRouteMiddlewares?: MiddlewareProvider[],
     route?: EndpointProviderReturnValue,
 ): request.SuperTest<request.Test> {
     const app = express();
 
-    config ??= mockConfig();
+    const config = { ...mockedConfig, ...partialConfig };
 
     if (preRouteMiddlewares) {
         for (const middleware of preRouteMiddlewares) {

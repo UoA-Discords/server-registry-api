@@ -1,4 +1,4 @@
-import { AuthScopes, EndpointProvider } from '../../types/Express/EndpointProvider';
+import { EndpointProvider, AuthScopes } from '../../types/Express/EndpointProvider';
 
 export const getLogout: EndpointProvider<AuthScopes.TokenOnly, void, void> = {
     auth: AuthScopes.TokenOnly,

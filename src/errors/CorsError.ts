@@ -1,7 +1,14 @@
-import { Response } from 'express';
+import { SiteError } from './SiteError';
 
-export class CorsError extends Error {
-    public send(res: Response): void {
-        res.status(400).send('Not allowed by CORS.');
+/**
+ * Error thrown when a request's origin header is present and not in the `config.clientUrls` whitelist.
+ *
+ * Has status code 400 (Bad Request), since this is an error on the user's side of things.
+ */
+export class CorsError extends SiteError {
+    public readonly statusCode = 400;
+
+    public constructor() {
+        super('Invalid Origin', 'The origin header of your request is invalid (CORS).', undefined);
     }
 }

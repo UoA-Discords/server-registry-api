@@ -1,10 +1,9 @@
-import { mockConfig } from '../tests/mockConfig';
 import { stubApp } from '../tests/stubApp';
 import { rateLimitingMiddleware } from './rateLimitingMiddleware';
 
 describe('rateLimitingMiddleware', () => {
     it('rate limits according to config', async () => {
-        const app = stubApp(mockConfig({ maxRequestsPerMinute: 2 }), [rateLimitingMiddleware]);
+        const app = stubApp({ maxRequestsPerMinute: 2 }, [rateLimitingMiddleware]);
 
         const response1 = await app.get('/').send();
         const response2 = await app.get('/').send();
@@ -16,10 +15,9 @@ describe('rateLimitingMiddleware', () => {
     });
 
     it('accepts valid RateLimit-Bypass-Token headers', async () => {
-        const app = stubApp(
-            mockConfig({ maxRequestsPerMinute: 1, rateLimitBypassTokens: new Set(['someBypassToken']) }),
-            [rateLimitingMiddleware],
-        );
+        const app = stubApp({ maxRequestsPerMinute: 1, rateLimitBypassTokens: new Set(['someBypassToken']) }, [
+            rateLimitingMiddleware,
+        ]);
 
         await app.get('/').send(); // now we should be ratelimited on all subsequent requests
 
@@ -34,10 +32,9 @@ describe('rateLimitingMiddleware', () => {
     });
 
     it('gives feedback for invalid RateLimit-Bypass-Token headers', async () => {
-        const app = stubApp(
-            mockConfig({ maxRequestsPerMinute: 1, rateLimitBypassTokens: new Set(['someBypassToken']) }),
-            [rateLimitingMiddleware],
-        );
+        const app = stubApp({ maxRequestsPerMinute: 1, rateLimitBypassTokens: new Set(['someBypassToken']) }, [
+            rateLimitingMiddleware,
+        ]);
 
         await app.get('/').send(); // now we should be ratelimited on all subsequent requests
 
