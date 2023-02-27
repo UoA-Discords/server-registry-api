@@ -130,7 +130,7 @@ This API is licensed under the [MIT license](./LICENSE).
 
 ### FAQ
 
-Trying out any operation in the [api-spec](https://registry.uoa-discords.com/api-spec) returns "Failed to fetch", how do I fix this?
+Trying out any operation in the [api doc](https://registry.uoa-discords.com/api-docs) returns "Failed to fetch", how do I fix this?
 
 > Make sure your server (at the top of the page) is set to `registry.uoa-discords.com`, since by default it looks for your development server which might not be running.
 >
