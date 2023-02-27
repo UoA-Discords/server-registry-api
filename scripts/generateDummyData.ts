@@ -12,6 +12,7 @@ import { ServerTags } from '../src/types/Server/ServerTags';
 import { ServerStatus } from '../src/types/Server/ServerStatus';
 import { User } from '../src/types/User';
 import { DiscordIdString } from '../src/types/Utility';
+import { UserPermissions } from '../src/types/User/UserPermissions';
 
 function awaitResponse<T extends string | number>(
     prompt: string,
@@ -65,11 +66,10 @@ function randomChance(p: number) {
 }
 
 async function makeDummyServer(serverService: ServerService, creator: User, i: number): Promise<Server> {
-    const serverInfo: Partial<Pick<InviteData, 'inviter' | 'approximate_member_count' | 'approximate_presence_count'>> =
-        {};
+    const memberCount = Math.floor(Math.random() * 1_000);
 
-    if (randomChance(0.9)) {
-        serverInfo.inviter = randomChance(0.5)
+    const serverInfo: InviteData = {
+        inviter: randomChance(0.5)
             ? {
                   id: makeRandomId(`inv-${i}`),
                   username: `Unregistered inviter ${i}`,
@@ -81,57 +81,66 @@ async function makeDummyServer(serverService: ServerService, creator: User, i: n
                   username: creator.discord.username,
                   discriminator: creator.discord.discriminator,
                   avatar: creator.discord.avatar,
-              };
-    }
-
-    if (randomChance(0.8)) {
-        serverInfo.approximate_member_count = Math.floor(Math.random() * 1_000);
-        serverInfo.approximate_presence_count = Math.floor(Math.random() * serverInfo.approximate_member_count);
-    }
-
-    return await serverService.createNewServer(
-        creator,
-        {
-            ...serverInfo,
-            code: randomCode(),
-            guild: {
-                id: makeRandomId(i),
-                name: `Guild ${i}`,
-                splash: null,
-                banner: null,
-                icon: null,
-                vanity_url_code: null,
-                description: null,
-                features: [],
-                verification_level: 0,
-                nsfw_level: 0,
-            },
-            channel: null,
-            inviter: {
-                id: makeRandomId(`inv-${i}`),
-                username: `inviter ${i}`,
-                discriminator: makeRandomDiscriminator(),
-                avatar: null,
-            },
+              },
+        ...(randomChance(0.8)
+            ? {
+                  approximate_member_count: memberCount,
+                  approximate_presence_count: Math.floor(Math.random() * memberCount),
+              }
+            : {}),
+        code: randomCode(),
+        guild: {
+            id: makeRandomId(i),
+            name: `Guild ${i}`,
+            splash: null,
+            banner: null,
+            icon: null,
+            vanity_url_code: null,
+            description: null,
+            features: [],
+            verification_level: 0,
+            nsfw_level: 0,
         },
-        randomServerTags(),
-    );
+        channel: null,
+    };
+
+    return await serverService.createNewServer(creator, serverInfo, randomServerTags());
 }
 
 async function approveServer(serverService: ServerService, server: Server, approver: User): Promise<void> {
-    await serverService.changeServerStatus(approver, server._id, ServerStatus.Public, 'Approved by script');
+    await serverService.changeServerStatus(
+        { ...approver, permissions: approver.permissions | UserPermissions.ManageServers },
+        server._id,
+        ServerStatus.Public,
+        'Approved by script',
+    );
 }
 
 async function rejectServer(serverService: ServerService, server: Server, rejecter: User): Promise<void> {
-    await serverService.changeServerStatus(rejecter, server._id, ServerStatus.Rejected, 'Rejected by script');
+    await serverService.changeServerStatus(
+        { ...rejecter, permissions: rejecter.permissions | UserPermissions.ManageServers },
+        server._id,
+        ServerStatus.Rejected,
+        'Rejected by script',
+    );
 }
 
 async function featureServer(serverService: ServerService, server: Server, featurer: User): Promise<void> {
-    await serverService.changeServerStatus(featurer, server._id, ServerStatus.Featured, 'Featured by script');
+    await serverService.changeServerStatus(
+        { ...featurer, permissions: featurer.permissions | UserPermissions.ManageServers | UserPermissions.Feature },
+        server._id,
+        ServerStatus.Featured,
+        'Featured by script',
+    );
 }
 
 async function withdrawServer(serverService: ServerService, server: Server, withdrawer: User): Promise<void> {
-    await serverService.changeServerStatus(withdrawer, server._id, ServerStatus.Withdrawn, 'Withdrawn by script');
+    await serverService.changeServerStatus(
+        { ...withdrawer, permissions: withdrawer.permissions | UserPermissions.ManageServers },
+        server._id,
+        ServerStatus.Withdrawn,
+        'Withdrawn by script',
+    );
 }
 
 async function makeDummyUser(userService: UserService, i: number): Promise<User> {
