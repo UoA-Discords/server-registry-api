@@ -655,7 +655,7 @@
         },
         {
             "name": "Registry",
-            "description": "Listing, searching, and submitting servers to/from the registry, as well as listing and searching users."
+            "description": "Listing, searching, and submitting servers to the registry, and fetching users."
         }
     ]
 }
