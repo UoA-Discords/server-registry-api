@@ -261,6 +261,45 @@
                 }
             }
         },
+        "/users/{id}": {
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/DiscordId"
+                }
+            ],
+            "get": {
+                "tags": ["User Management"],
+                "security": [{ "siteToken": [] }, { "siteToken": [], "rateLimitBypassToken": [] }],
+                "operationId": "getUserById",
+                "responses": {
+                    "200": {
+                        "description": "User.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/User"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/BadRequestError400"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/ForbiddenError403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFoundError404"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/RateLimited429"
+                    }
+                }
+            }
+        },
         "/search/servers": {
             "post": {
                 "tags": ["Registry"],
@@ -887,7 +926,7 @@
                     "description": "Discord Snowflake Docs"
                 },
                 "description": "A Discord ID.",
-                "example": "909645967081476147"
+                "example": "240312568273436674"
             },
             "SiteErrorObject": {
                 "type": "object",
@@ -1061,7 +1100,7 @@
             }
         },
         "parameters": {
-            "DiscordID": {
+            "DiscordId": {
                 "in": "path",
                 "name": "id",
                 "schema": {
