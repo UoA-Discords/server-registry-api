@@ -28,7 +28,7 @@ export enum AuthScopes {
      * Authorization header isn't needed, but if supplied then a user will be fetched.
      *
      * - Will throw an `AuthError` if the token is invalid.
-     * - Will throw an `AccountDeletedError` if the user associated with the provided token no longer exists in the
+     * - Will throw a `NotFoundError` if the user associated with the provided token no longer exists in the
      * database.
      */
     OptionalUser,
@@ -37,7 +37,7 @@ export enum AuthScopes {
      * An authorization token associated with an existing user is needed.
      *
      * - Will throw an `AuthError`if the token is invalid.
-     * - Will throw an `AccountDeletedError` if the user associated with the provided token no longer exists in the
+     * - Will throw a `NotFoundError` if the user associated with the provided token no longer exists in the
      * database.
      * - Will throw a `ForbiddenError` if the user lacks the required permissions (if permissions are specified).
      */
