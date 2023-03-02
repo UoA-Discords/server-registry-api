@@ -71,6 +71,12 @@
                                         },
                                         "receivedRequest": {
                                             "$ref": "#/components/schemas/ISOString"
+                                        },
+                                        "numUsers": {
+                                            "type": "integer"
+                                        },
+                                        "numServers": {
+                                            "type": "integer"
                                         }
                                     },
                                     "required": ["startTime", "version", "receivedRequest"],
