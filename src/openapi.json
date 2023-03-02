@@ -301,9 +301,13 @@
                                         "$ref": "#/components/schemas/ServerTagSearchOptions"
                                     },
                                     "searchTerm": {
-                                        "type": "string",
-                                        "example": ""
+                                        "type": "string"
                                     }
+                                },
+                                "example": {
+                                    "page": 0,
+                                    "perPage": 20,
+                                    "withStatus": "visible"
                                 }
                             }
                         }
@@ -322,6 +326,95 @@
                                             "type": "array",
                                             "items": {
                                                 "$ref": "#/components/schemas/Server"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/BadRequestError400"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/ForbiddenError403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFoundError404"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/RateLimited429"
+                    }
+                }
+            }
+        },
+        "/search/users": {
+            "post": {
+                "tags": ["Registry"],
+                "security": [
+                    {},
+                    { "rateLimitBypassToken": [] },
+                    { "siteToken": [] },
+                    { "siteToken": [], "rateLimitBypassToken": [] }
+                ],
+                "operationId": "searchUsers",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "externalDocs": {
+                                    "url": "https://github.com/UoA-Discords/server-registry-api/blob/main/src/services/UserService/UserServiceParams.ts",
+                                    "description": "src/services/UserService/UserServiceParams.ts"
+                                },
+                                "allOf": [{ "$ref": "#/components/schemas/PaginationParams" }],
+                                "properties": {
+                                    "sortBy": {
+                                        "$ref": "#/components/schemas/UserSortOptions"
+                                    },
+                                    "sortDirection": {
+                                        "$ref": "#/components/schemas/SortDirection"
+                                    },
+                                    "withIds": {
+                                        "type": "array",
+                                        "items": {
+                                            "$ref": "#/components/schemas/DiscordIDString"
+                                        },
+                                        "description": "The `Manage Users` permission is required to view all users."
+                                    },
+                                    "withPermissions": {
+                                        "$ref": "#/components/schemas/UserPermissions"
+                                    },
+                                    "searchTerm": {
+                                        "type": "string"
+                                    }
+                                },
+                                "example": {
+                                    "page": 0,
+                                    "perPage": 20,
+                                    "withIds": ["240312568273436674"]
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Array of users.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "allOf": [{ "$ref": "#/components/schemas/WithPagination" }],
+                                    "properties": {
+                                        "items": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/User"
                                             }
                                         }
                                     }
