@@ -32,6 +32,7 @@ const _mockedServerService: MethodsOf<ServerService> = {
     changeServerStatus: jest.fn(),
     changeServerTags: jest.fn(),
     validateInviteCode: jest.fn(),
+    getNumPublicServers: jest.fn(),
 };
 
 export const mockedServerService = _mockedServerService as unknown as jest.Mocked<ServerService>;
@@ -44,6 +45,7 @@ const _mockedUserService: MethodsOf<UserService> = {
     updateUserPermissions: jest.fn(),
     updateUserSubmissionStats: jest.fn(),
     updateUserActionStats: jest.fn(),
+    getNumUsers: jest.fn(),
 };
 
 export const mockedUserService = _mockedUserService as unknown as jest.Mocked<UserService>;
