@@ -6,7 +6,7 @@ interface PostLoginRequest {
     redirect_uri: string;
 }
 
-export const postLogin: EndpointProvider<AuthScopes.None, PostLoginRequest, LoginOrSignupResponse> = {
+export const login: EndpointProvider<AuthScopes.None, PostLoginRequest, LoginOrSignupResponse> = {
     auth: AuthScopes.None,
     permissionsRequired: null,
     applyToRoute({ authService }) {

@@ -155,7 +155,7 @@
             "post": {
                 "tags": ["Auth"],
                 "security": [{}, { "rateLimitBypassToken": [] }],
-                "operationId": "postLogin",
+                "operationId": "login",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -204,7 +204,7 @@
             "get": {
                 "tags": ["Auth"],
                 "security": [{ "siteToken": [], "rateLimitBypassToken": [] }, { "siteToken": [] }],
-                "operationId": "getRefresh",
+                "operationId": "refresh",
                 "responses": {
                     "200": {
                         "description": "Successful refresh response.",
@@ -238,7 +238,7 @@
             "get": {
                 "tags": ["Auth"],
                 "security": [{ "siteToken": [], "rateLimitBypassToken": [] }, { "siteToken": [] }],
-                "operationId": "getLogout",
+                "operationId": "logout",
                 "responses": {
                     "200": {
                         "description": "Successfully logged out."

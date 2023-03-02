@@ -1,7 +1,7 @@
 import { LoginOrSignupResponse } from '../../types/Auth/LoginOrSignupResponse';
 import { EndpointProvider, AuthScopes } from '../../types/Express/EndpointProvider';
 
-export const getRefresh: EndpointProvider<AuthScopes.TokenOnly, void, LoginOrSignupResponse> = {
+export const refresh: EndpointProvider<AuthScopes.TokenOnly, void, LoginOrSignupResponse> = {
     auth: AuthScopes.TokenOnly,
     permissionsRequired: null,
     applyToRoute({ auth, authService }) {
