@@ -686,6 +686,64 @@
                     }
                 }
             }
+        },
+        "/servers": {
+            "put": {
+                "tags": ["Registry"],
+                "security": [{ "siteToken": [] }, { "siteToken": [], "rateLimitBypassToken": [] }],
+                "operationId": "makeSubmission",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "inviteCode": {
+                                        "type": "string",
+                                        "description": "Without the `discord.gg/` prefix, e.g. `https://discord.gg/abc123` becomes `abc123`."
+                                    },
+                                    "tags": {
+                                        "$ref": "#/components/schemas/ServerTags"
+                                    }
+                                },
+                                "required": ["inviteCode", "tags"],
+                                "additionalProperties": false
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The created server.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Server"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/BadRequestError400"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/ForbiddenError403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFoundError404"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/RateLimited429"
+                    },
+                    "502": {
+                        "$ref": "#/components/responses/SecondaryRequestError502"
+                    }
+                }
+            }
         }
     },
     "components": {
