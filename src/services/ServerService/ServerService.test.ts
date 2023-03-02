@@ -17,6 +17,13 @@ import { UserPermissions } from '../../types/User/UserPermissions';
 import { ServerService } from './ServerService';
 import { PermissionService } from '../PermissionService';
 import { mockedUser } from '../../tests/mockedUser';
+import axios from 'axios';
+import { SecondaryRequestError } from '../../errors/SecondaryRequestError';
+import { ForbiddenError } from '../../errors/ForbiddenError';
+
+jest.mock('axios');
+
+const mockedAxios = jest.mocked(axios);
 
 describe('ServerService', () => {
     const userService = mockedUserService;
@@ -585,6 +592,105 @@ describe('ServerService', () => {
             } catch (error) {
                 expect(error).toBeInstanceOf(NotFoundError);
             }
+        });
+    });
+
+    describe('validateInviteCode', () => {
+        it('throws a SecondaryRequestError if invite data fetching fails', async () => {
+            mockedAxios.get.mockImplementationOnce(() => {
+                throw new Error();
+            });
+
+            try {
+                await serverService.validateInviteCode('some code');
+                fail('should have thrown an error');
+            } catch (error) {
+                expect(error).toBeInstanceOf(SecondaryRequestError);
+            }
+        });
+
+        it('throws a ForbiddenError if the invite code has no server', async () => {
+            mockedAxios.get.mockResolvedValueOnce({ data: {} });
+
+            try {
+                await serverService.validateInviteCode('some code');
+                fail('should have thrown an error');
+            } catch (error) {
+                expect(error).toBeInstanceOf(ForbiddenError);
+            }
+        });
+
+        it('throws a ForbiddenError if the invite code has an expiry date', async () => {
+            mockedAxios.get.mockResolvedValueOnce({ data: { guild: 'some guild', expires_at: 'some expiry date' } });
+
+            try {
+                await serverService.validateInviteCode('some code');
+                fail('should have thrown an error');
+            } catch (error) {
+                expect(error).toBeInstanceOf(ForbiddenError);
+            }
+        });
+
+        it('throws a ForbiddenError if the invite code has no member count', async () => {
+            mockedAxios.get.mockResolvedValueOnce({ data: { guild: 'some guild', expires_at: null } });
+
+            try {
+                await serverService.validateInviteCode('some code');
+                fail('should have thrown an error');
+            } catch (error) {
+                expect(error).toBeInstanceOf(ForbiddenError);
+            }
+        });
+
+        it('throws a ForbiddenError if the invite code has too few members', async () => {
+            mockedAxios.get.mockResolvedValueOnce({
+                data: {
+                    guild: 'some guild',
+                    expires_at: null,
+                    approximate_member_count: mockedConfig.minServerSize - 1,
+                },
+            });
+
+            try {
+                await serverService.validateInviteCode('some code');
+                fail('should have thrown an error');
+            } catch (error) {
+                expect(error).toBeInstanceOf(ForbiddenError);
+            }
+        });
+
+        it('throws a ForbiddenError if the invite code has no inviter', async () => {
+            mockedAxios.get.mockResolvedValueOnce({
+                data: {
+                    guild: 'some guild',
+                    expires_at: null,
+                    approximate_member_count: mockedConfig.minServerSize,
+                },
+            });
+
+            try {
+                await serverService.validateInviteCode('some code');
+                fail('should have thrown an error');
+            } catch (error) {
+                expect(error).toBeInstanceOf(ForbiddenError);
+            }
+        });
+
+        it('returns a valid invite', async () => {
+            const validInvite = {
+                guild: 'some guild',
+                expires_at: null,
+                approximate_member_count: mockedConfig.minServerSize,
+                inviter: 'some inviter',
+            };
+
+            mockedAxios.get.mockResolvedValueOnce({
+                data: validInvite,
+            });
+
+            const returnedInvite = await serverService.validateInviteCode('some code');
+
+            expect(returnedInvite).toEqual(validInvite);
         });
     });
 });

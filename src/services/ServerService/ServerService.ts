@@ -14,6 +14,10 @@ import { DiscordIdString } from '../../types/Utility';
 import { UserService } from '../UserService';
 import { GetAllServersParams } from './ServerServiceParams';
 import { PermissionService } from '../PermissionService';
+import { APIInvite, RouteBases } from 'discord-api-types/v10';
+import axios from 'axios';
+import { SecondaryRequestError } from '../../errors/SecondaryRequestError';
+import { ForbiddenError } from '../../errors/ForbiddenError';
 
 /**
  * The server service manages all interactions with the servers database.
@@ -281,5 +285,55 @@ export class ServerService {
         if (updatedServer === null) throw new NotFoundError('server');
 
         return updatedServer;
+    }
+
+    /**
+     * Validates and returns the Discord invite data associated with an invite code.
+     * @param {string} inviteCode The Discord invite code, without the `discord.gg/` prefix.
+     * @throws Throws a {@link SecondaryRequestError} if invite data fetching fails.
+     * @throws Throws a {@link ForbiddenError} if the invite is invalid.
+     */
+    public async validateInviteCode(inviteCode: string): Promise<InviteData> {
+        let rawInviteData: APIInvite;
+
+        try {
+            const { data } = await axios.get<APIInvite>(`${RouteBases.api}/invites/${inviteCode}`, {
+                params: {
+                    with_expiration: true,
+                    with_counts: true,
+                },
+            });
+            rawInviteData = data;
+        } catch (error) {
+            throw new SecondaryRequestError('Failed to fetch invite data', 'Invite code may be invalid.', error);
+        }
+
+        if (rawInviteData.guild === undefined) {
+            throw new ForbiddenError('The provided invite code has no associated server.');
+        }
+
+        if (rawInviteData.expires_at !== null) {
+            throw new ForbiddenError('The provided invite code has an expiry date.');
+        }
+
+        if (rawInviteData.approximate_member_count === undefined) {
+            throw new ForbiddenError('Failed to fetch member count for this server.');
+        }
+
+        if (rawInviteData.approximate_member_count < this._config.minServerSize) {
+            throw new ForbiddenError(
+                `The server must have at least ${this._config.minServerSize} members (has ${rawInviteData.approximate_member_count}).`,
+            );
+        }
+
+        if (rawInviteData.inviter === undefined) {
+            throw new ForbiddenError('This invite code was not created by a user.');
+        }
+
+        return {
+            ...rawInviteData,
+            guild: rawInviteData.guild,
+            inviter: rawInviteData.inviter,
+        };
     }
 }

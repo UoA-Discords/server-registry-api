@@ -31,6 +31,7 @@ const _mockedServerService: MethodsOf<ServerService> = {
     refreshExistingServer: jest.fn(),
     changeServerStatus: jest.fn(),
     changeServerTags: jest.fn(),
+    validateInviteCode: jest.fn(),
 };
 
 export const mockedServerService = _mockedServerService as unknown as jest.Mocked<ServerService>;
