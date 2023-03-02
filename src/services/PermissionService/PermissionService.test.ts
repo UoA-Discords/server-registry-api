@@ -23,18 +23,18 @@ describe('PermissionService', () => {
     };
     const normalUser: User = { ...mockedUser, permissions: UserPermissions.None, _id: 'normal' };
 
-    describe(PermissionService['hasPermissions'].name, () => {
+    describe(PermissionService.hasPermissions.name, () => {
         const permissions = UserPermissions.Favourite | UserPermissions.Feature | UserPermissions.MakeApplications;
         const permissionsSubset = permissions & (UserPermissions.Favourite | UserPermissions.MakeApplications);
         const permissionsSuperset = permissions | UserPermissions.Owner;
 
         it('returns true when the target has all of the permissions', () => {
-            expect(PermissionService['hasPermissions'](permissions, permissions)).toBe(true);
-            expect(PermissionService['hasPermissions'](permissionsSuperset, permissions)).toBe(true);
+            expect(PermissionService.hasPermissions(permissions, permissions)).toBe(true);
+            expect(PermissionService.hasPermissions(permissionsSuperset, permissions)).toBe(true);
         });
 
         it('returns false when the target is missing any of the permissions', () => {
-            expect(PermissionService['hasPermissions'](permissionsSubset, permissions)).toBe(false);
+            expect(PermissionService.hasPermissions(permissionsSubset, permissions)).toBe(false);
         });
     });
 

@@ -21,7 +21,7 @@ import { UserPermissions } from '../../types/User/UserPermissions';
  */
 export abstract class PermissionService {
     /** Checks if the set of target permissions contains every one of the required permissions. */
-    private static hasPermissions(targetPermissions: UserPermissions, requiredPermissions: UserPermissions): boolean {
+    public static hasPermissions(targetPermissions: UserPermissions, requiredPermissions: UserPermissions): boolean {
         return (targetPermissions & requiredPermissions) === requiredPermissions;
     }
 
