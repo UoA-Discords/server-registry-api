@@ -390,7 +390,14 @@
                         "$ref": "#/components/responses/RateLimited429"
                     }
                 }
-            },
+            }
+        },
+        "/servers/{id}/status": {
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/DiscordId"
+                }
+            ],
             "patch": {
                 "tags": ["Server Management"],
                 "security": [{ "siteToken": [] }, { "siteToken": [], "rateLimitBypassToken": [] }],

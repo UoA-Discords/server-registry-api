@@ -5,5 +5,5 @@ import { getServerById } from './getServerById';
 
 export const applyServerManagementRoutes: RouteProvider = (app, config, services) => {
     app.get('/servers/:id', withScopes(getServerById, config, services));
-    app.patch('/servers/:id', withScopes(changeServerStatus, config, services));
+    app.patch('/servers/:id/status', withScopes(changeServerStatus, config, services));
 };
