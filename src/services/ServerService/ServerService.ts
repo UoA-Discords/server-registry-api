@@ -158,6 +158,7 @@ export class ServerService {
                 total: serverInfo.approximate_member_count ?? -1,
                 lastUpdated: now,
             },
+            numFavourited: 0,
         };
 
         await this._serverModel.insertOne(newServer);

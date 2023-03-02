@@ -30,4 +30,5 @@ export const mockedServer: Server = {
         total: 456,
         lastUpdated: new Date().toISOString(),
     },
+    numFavourited: 0,
 };

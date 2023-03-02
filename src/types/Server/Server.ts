@@ -52,4 +52,7 @@ export interface Server {
         total: number;
         lastUpdated: ISOString;
     };
+
+    /** Number of users who have favourited this server. */
+    numFavourited: number;
 }

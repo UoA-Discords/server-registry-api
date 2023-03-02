@@ -366,6 +366,7 @@ describe('ServerService', () => {
                     total: mockedInviteData.approximate_member_count ?? -1,
                     lastUpdated: new Date().toISOString(),
                 },
+                numFavourited: 0,
             });
         });
 
