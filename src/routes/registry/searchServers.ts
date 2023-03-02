@@ -15,8 +15,8 @@ export const searchServers: EndpointProvider<AuthScopes.OptionalUser, GetAllServ
 
                 // only users with the `Manage Servers` permission can view non-public servers
                 if (searchParams.withStatus !== 'visible') {
-                    auth ||= authService.validateSiteToken(req.get('Authorization'));
-                    user ||= await userService.getUserById(auth.id);
+                    auth ??= authService.validateSiteToken(req.get('Authorization'));
+                    user ??= await userService.getUserById(auth.id);
                     PermissionService.checkHasPermissions(user, UserPermissions.ManageServers);
                 }
 
