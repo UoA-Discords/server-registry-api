@@ -1,13 +1,13 @@
 import { AuthScopes, EndpointProvider } from '../../types/Express/EndpointProvider';
 import { ISOString } from '../../types/Utility';
 
-interface GetRootResponse {
+interface PostRootResponse {
     startTime: ISOString;
     version: string;
     receivedRequest: ISOString;
 }
 
-export const postRoot: EndpointProvider<AuthScopes.None, void, GetRootResponse> = {
+export const postRoot: EndpointProvider<AuthScopes.None, void, PostRootResponse> = {
     auth: AuthScopes.None,
     permissionsRequired: null,
     applyToRoute({ config }) {

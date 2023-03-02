@@ -1,12 +1,12 @@
 import { LoginOrSignupResponse } from '../../types/Auth/LoginOrSignupResponse';
 import { EndpointProvider, AuthScopes } from '../../types/Express/EndpointProvider';
 
-interface PostLoginRequest {
+interface LoginRequest {
     code: string;
     redirect_uri: string;
 }
 
-export const login: EndpointProvider<AuthScopes.None, PostLoginRequest, LoginOrSignupResponse> = {
+export const login: EndpointProvider<AuthScopes.None, LoginRequest, LoginOrSignupResponse> = {
     auth: AuthScopes.None,
     permissionsRequired: null,
     applyToRoute({ authService }) {
