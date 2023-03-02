@@ -71,6 +71,12 @@
             "minimum": 1,
             "description": "Maximum number of recorded user permission and server status change logs.",
             "default": 50
+        },
+        "minServerSize": {
+            "type": "integer",
+            "description": "A server must have at least this many users before it can be submitted to the registry.",
+            "minimum": 1,
+            "default": 100
         }
     },
     "additionalProperties": false,

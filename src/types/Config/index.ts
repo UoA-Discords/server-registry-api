@@ -34,6 +34,9 @@ export interface Config {
     /** Maximum number of recorded user permission and server status change logs. */
     maxLogSize: number;
 
+    /** A server must have at least this many users before it can be submitted to the registry. */
+    minServerSize: number;
+
     // the following values should not be defined in `config.json` as they are automatically generated
     // if provided, they will be overwritten
 
