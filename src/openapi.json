@@ -260,6 +260,92 @@
                     }
                 }
             }
+        },
+        "/search/servers": {
+            "post": {
+                "tags": ["Registry"],
+                "security": [
+                    {},
+                    { "rateLimitBypassToken": [] },
+                    { "siteToken": [] },
+                    { "siteToken": [], "rateLimitBypassToken": [] }
+                ],
+                "operationId": "searchServers",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "externalDocs": {
+                                    "url": "https://github.com/UoA-Discords/server-registry-api/blob/main/src/services/ServerService/ServerServiceParams.ts",
+                                    "description": "src/services/ServerService/ServerServiceParams.ts"
+                                },
+                                "allOf": [{ "$ref": "#/components/schemas/PaginationParams" }],
+                                "properties": {
+                                    "sortBy": {
+                                        "$ref": "#/components/schemas/ServerSortOptions"
+                                    },
+                                    "sortDirection": {
+                                        "$ref": "#/components/schemas/SortDirection"
+                                    },
+                                    "withStatus": {
+                                        "anyOf": [
+                                            { "$ref": "#/components/schemas/ServerStatus" },
+                                            { "type": "string", "enum": ["visible"] }
+                                        ],
+                                        "example": "visible",
+                                        "description": "The `Manage Servers` permission is required to view all non-visible servers."
+                                    },
+                                    "withTags": {
+                                        "$ref": "#/components/schemas/ServerTagSearchOptions"
+                                    },
+                                    "searchTerm": {
+                                        "type": "string",
+                                        "example": ""
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Array of servers.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "allOf": [{ "$ref": "#/components/schemas/WithPagination" }],
+                                    "properties": {
+                                        "items": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Server"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/BadRequestError400"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/ForbiddenError403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFoundError404"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/RateLimited429"
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -725,6 +811,10 @@
                     }
                 },
                 "required": ["title", "description"]
+            },
+            "SortDirection": {
+                "type": "string",
+                "enum": ["asc", "desc"]
             }
         },
         "responses": {
