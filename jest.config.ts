@@ -11,6 +11,7 @@ const config: Config = {
         // Supertest also beaks when using fake timers (setImmediate)
         doNotFake: ['nextTick', 'setImmediate'],
     },
+    maxWorkers: 4,
 };
 
 export default config;
