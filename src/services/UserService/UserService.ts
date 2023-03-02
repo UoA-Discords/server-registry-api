@@ -254,4 +254,8 @@ export class UserService {
             },
         );
     }
+
+    public async getNumUsers(): Promise<number> {
+        return await this._userModel.countDocuments();
+    }
 }

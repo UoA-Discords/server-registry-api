@@ -466,4 +466,23 @@ describe('UserService', () => {
             });
         });
     });
+
+    describe('getNumUsers', () => {
+        it('returns the number of users', async () => {
+            const users = new Array(10).fill(null).map(
+                (_e, i): User => ({
+                    ...mockedUser,
+                    _id: `mocked user ${i}`,
+                }),
+            );
+
+            await testDatabase.userModel.insertMany(users);
+
+            const numPublicServers = await userService.getNumUsers();
+
+            expect(numPublicServers).toBe(users.length);
+
+            await testDatabase.userModel.deleteMany({ _id: { $in: users.map((e) => e._id) } });
+        });
+    });
 });

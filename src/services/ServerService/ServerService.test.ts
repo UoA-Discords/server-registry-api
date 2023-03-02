@@ -717,4 +717,26 @@ describe('ServerService', () => {
             expect(returnedInvite).toEqual(validInvite);
         });
     });
+
+    describe('getNumPublicServers', () => {
+        it('returns the number of public and featured servers', async () => {
+            const servers = new Array(10).fill(null).map(
+                (_e, i): Server => ({
+                    ...mockedServer,
+                    status: [ServerStatus.Featured, ServerStatus.Public, ServerStatus.Pending][i % 3],
+                    _id: `mocked server ${i}`,
+                }),
+            );
+
+            await testDatabase.serverModel.insertMany(servers);
+
+            const numPublicServers = await serverService.getNumPublicServers();
+
+            expect(numPublicServers).toBe(
+                servers.filter((e) => e.status === ServerStatus.Featured || e.status === ServerStatus.Public).length,
+            );
+
+            await testDatabase.serverModel.deleteMany({ _id: { $in: servers.map((e) => e._id) } });
+        });
+    });
 });

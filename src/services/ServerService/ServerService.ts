@@ -340,4 +340,9 @@ export class ServerService {
             inviter: rawInviteData.inviter,
         };
     }
+
+    public async getNumPublicServers(): Promise<number> {
+        const filter: Filter<Server> = { status: { $in: [ServerStatus.Public, ServerStatus.Featured] } };
+        return await this._serverModel.countDocuments(filter);
+    }
 }
