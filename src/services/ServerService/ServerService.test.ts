@@ -676,6 +676,30 @@ describe('ServerService', () => {
             }
         });
 
+        it('throws a ForbiddenError if the guild already exists in the database', async () => {
+            await testDatabase.serverModel.insertOne({ _id: 'some guild id' } as Server);
+
+            mockedAxios.get.mockResolvedValueOnce({
+                data: {
+                    guild: {
+                        id: 'some guild id',
+                    },
+                    expires_at: null,
+                    approximate_member_count: mockedConfig.minServerSize,
+                    inviter: 'some inviter',
+                },
+            });
+
+            try {
+                await serverService.validateInviteCode('some code');
+                fail('should have thrown an error');
+            } catch (error) {
+                expect(error).toBeInstanceOf(ForbiddenError);
+            }
+
+            await testDatabase.serverModel.deleteOne({ _id: 'some guild id' });
+        });
+
         it('returns a valid invite', async () => {
             const validInvite = {
                 guild: 'some guild',

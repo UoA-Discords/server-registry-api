@@ -330,6 +330,10 @@ export class ServerService {
             throw new ForbiddenError('This invite code was not created by a user.');
         }
 
+        if ((await this._serverModel.findOne({ _id: rawInviteData.guild.id })) !== null) {
+            throw new ForbiddenError('This server is already in the registry, it may be private or under review.');
+        }
+
         return {
             ...rawInviteData,
             guild: rawInviteData.guild,
