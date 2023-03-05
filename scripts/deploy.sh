@@ -15,6 +15,9 @@ git pull --quiet
 echo "Installing dependencies"
 pnpm install --silent --frozen-lockfile
 
+echo "Deleting old build"
+rm -rf build/
+
 echo "Building"
 pnpm build
 
