@@ -267,6 +267,37 @@
                 }
             }
         },
+        "/@me": {
+            "get": {
+                "tags": ["Auth"],
+                "security": [{ "siteToken": [], "rateLimitBypassToken": [] }, { "siteToken": [] }],
+                "operationId": "getSelf",
+                "responses": {
+                    "200": {
+                        "description": "The user associated with the provided site token.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/User"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/BadRequestError400"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthError401"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFoundError404"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/RateLimited429"
+                    }
+                }
+            }
+        },
         "/users/{id}": {
             "parameters": [
                 {
