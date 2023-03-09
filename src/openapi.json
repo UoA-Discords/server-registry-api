@@ -306,7 +306,13 @@
             ],
             "get": {
                 "tags": ["User Management"],
-                "security": [{ "siteToken": [] }, { "siteToken": [], "rateLimitBypassToken": [] }],
+                "security": [
+                    {},
+                    { "rateLimitBypassToken": [] },
+                    { "siteToken": [] },
+                    { "siteToken": [], "rateLimitBypassToken": [] }
+                ],
+                "description": "Note this does not require the `ManageUsers` permission (or even authentication).",
                 "operationId": "getUserById",
                 "responses": {
                     "200": {
@@ -398,7 +404,13 @@
             ],
             "get": {
                 "tags": ["Server Management"],
-                "security": [{ "siteToken": [] }, { "siteToken": [], "rateLimitBypassToken": [] }],
+                "security": [
+                    {},
+                    { "rateLimitBypassToken": [] },
+                    { "siteToken": [] },
+                    { "siteToken": [], "rateLimitBypassToken": [] }
+                ],
+                "description": "Note this does not require the `ManageServers` permission (or even authentication), however non-public servers will not be returned in this case.",
                 "operationId": "getServerById",
                 "responses": {
                     "200": {
@@ -1438,11 +1450,11 @@
         },
         {
             "name": "User Management",
-            "description": "Managing and fetching users. These endpoints require the `ManageUsers` permission."
+            "description": "Managing and fetching users. These endpoints usually require the `ManageUsers` permission."
         },
         {
             "name": "Server Management",
-            "description": "Managing servers. These endpoints require the `ManageServers` permission."
+            "description": "Managing servers. These endpoints usually require the `ManageServers` permission."
         },
         {
             "name": "Registry",
