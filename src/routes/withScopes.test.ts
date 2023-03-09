@@ -252,7 +252,7 @@ describe('withScopes', () => {
             mockedAuthService.validateSiteToken.mockReturnValueOnce({ id: 'some id' } as SiteTokenPayload);
             mockedUserService.getUserById.mockResolvedValueOnce(mockedUser);
             checkHasPermissions.mockImplementationOnce(() => {
-                throw new ForbiddenError(UserPermissions.None);
+                throw new ForbiddenError(0);
             });
 
             const res = await app.get('/');

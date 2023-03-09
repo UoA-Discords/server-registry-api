@@ -21,7 +21,7 @@ describe('PermissionService', () => {
         permissions: UserPermissions.ManageUsers | UserPermissions.ManageServers,
         _id: 'admin',
     };
-    const normalUser: User = { ...mockedUser, permissions: UserPermissions.None, _id: 'normal' };
+    const normalUser: User = { ...mockedUser, permissions: 0, _id: 'normal' };
 
     describe(PermissionService.hasPermissions.name, () => {
         const permissions = UserPermissions.Favourite | UserPermissions.Feature | UserPermissions.MakeApplications;
