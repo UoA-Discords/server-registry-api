@@ -1,6 +1,6 @@
 {
     "name": "uoa-discords-server-registry-api",
-    "version": "0.9.5",
+    "version": "0.9.6",
     "private": true,
     "main": "build/index.js",
     "license": "MIT",

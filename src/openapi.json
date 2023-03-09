@@ -680,7 +680,8 @@
                                         "items": {
                                             "$ref": "#/components/schemas/DiscordIDString"
                                         },
-                                        "description": "The `Manage Users` permission is required to view all users."
+                                        "description": "The `Manage Users` permission is required to view all users.",
+                                        "maxItems": 100
                                     },
                                     "withPermissions": {
                                         "$ref": "#/components/schemas/UserPermissions"
