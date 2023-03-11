@@ -7,6 +7,7 @@ interface PostRootResponse {
     receivedRequest: ISOString;
     numUsers: number;
     numServers: number;
+    numPendingServers: number;
 }
 
 export const postRoot: EndpointProvider<AuthScopes.None, void, PostRootResponse> = {
@@ -16,9 +17,10 @@ export const postRoot: EndpointProvider<AuthScopes.None, void, PostRootResponse>
         const { startedAt: startTime, version } = config;
         return async (_req, res, next) => {
             try {
-                const [numServers, numUsers] = await Promise.all([
+                const [numServers, numUsers, numPendingServers] = await Promise.all([
                     serverService.getNumPublicServers(),
                     userService.getNumUsers(),
+                    serverService.getNumPendingServers(),
                 ]);
                 res.status(200).json({
                     startTime,
@@ -26,6 +28,7 @@ export const postRoot: EndpointProvider<AuthScopes.None, void, PostRootResponse>
                     receivedRequest: new Date().toISOString(),
                     numServers,
                     numUsers,
+                    numPendingServers,
                 });
             } catch (error) {
                 next(error);

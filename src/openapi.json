@@ -77,9 +77,19 @@
                                         },
                                         "numServers": {
                                             "type": "integer"
+                                        },
+                                        "numPendingServers": {
+                                            "type": "integer"
                                         }
                                     },
-                                    "required": ["startTime", "version", "receivedRequest"],
+                                    "required": [
+                                        "startTime",
+                                        "version",
+                                        "receivedRequest",
+                                        "numUsers",
+                                        "numServers",
+                                        "numPendingServers"
+                                    ],
                                     "additionalProperties": false
                                 }
                             }

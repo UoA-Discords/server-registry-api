@@ -345,4 +345,9 @@ export class ServerService {
         const filter: Filter<Server> = { status: { $in: [ServerStatus.Public, ServerStatus.Featured] } };
         return await this._serverModel.countDocuments(filter);
     }
+
+    public async getNumPendingServers(): Promise<number> {
+        const filter: Filter<Server> = { status: ServerStatus.Pending };
+        return await this._serverModel.countDocuments(filter);
+    }
 }
