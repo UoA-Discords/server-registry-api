@@ -739,4 +739,24 @@ describe('ServerService', () => {
             await testDatabase.serverModel.deleteMany({ _id: { $in: servers.map((e) => e._id) } });
         });
     });
+
+    describe('getNumPendingServers', () => {
+        it('returns the number of pending servers', async () => {
+            const servers = new Array(10).fill(null).map(
+                (_e, i): Server => ({
+                    ...mockedServer,
+                    status: [ServerStatus.Public, ServerStatus.Pending][i % 2],
+                    _id: `mocked server ${i}`,
+                }),
+            );
+
+            await testDatabase.serverModel.insertMany(servers);
+
+            const numPublicServers = await serverService.getNumPendingServers();
+
+            expect(numPublicServers).toBe(servers.filter((e) => e.status === ServerStatus.Pending).length);
+
+            await testDatabase.serverModel.deleteMany({ _id: { $in: servers.map((e) => e._id) } });
+        });
+    });
 });
