@@ -34,7 +34,7 @@ export const defaultConfig: Config = {
 
     maxLogSize: 50,
 
-    minServerSize: 80,
+    minServerSize: 25,
 
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     version: process.env.NPM_VERSION || require('../../package.json').version,

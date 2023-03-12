@@ -76,7 +76,7 @@
             "type": "integer",
             "description": "A server must have at least this many users before it can be submitted to the registry.",
             "minimum": 1,
-            "default": 80
+            "default": 25
         }
     },
     "additionalProperties": false,
