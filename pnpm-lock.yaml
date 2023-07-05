@@ -23,7 +23,7 @@ specifiers:
   mongodb: ^5.0.1
   mongodb-memory-server: ^8.11.5
   nodemon: ^2.0.20
-  prettier: ^2.8.4
+  prettier: ^3.0.0
   supertest: ^6.3.3
   swagger-ui-express: ^4.6.0
   ts-jest: ^29.0.5
@@ -56,7 +56,7 @@ devDependencies:
   jest: 29.4.2_ucpl6toqp57nqodtp3vxxi6g5a
   mongodb-memory-server: 8.11.5
   nodemon: 2.0.20
-  prettier: 2.8.4
+  prettier: 3.0.0
   supertest: 6.3.3
   ts-jest: 29.0.5_gelezmms3va3pnkofxaadhcvma
   ts-node: 10.9.1_4bewfcp2iebiwuold25d6rgcsy
@@ -4456,9 +4456,9 @@ packages:
     engines: {node: '>= 0.8.0'}
     dev: true
 
-  /prettier/2.8.4:
-    resolution: {integrity: sha512-vIS4Rlc2FNh0BySk3Wkd6xmwxB0FpOndW5fisM5H8hsZSxU2VWVB5CWIkIjWvrHjIhxk2g3bfMKM87zNTrZddw==}
-    engines: {node: '>=10.13.0'}
+  /prettier/3.0.0:
+    resolution: {integrity: sha512-zBf5eHpwHOGPC47h0zrPyNn+eAEIdEzfywMoYn2XPi0P44Zp0tSq64rq0xAREh4auw2cJZHo9QUob+NqCQky4g==}
+    engines: {node: '>=14'}
     hasBin: true
     dev: true
 
