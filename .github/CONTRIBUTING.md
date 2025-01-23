@@ -26,4 +26,4 @@ Our [production API](https://registry.uoa-discords.com) is always up-to-date wit
 
 ### Other
 
-It is highly recommended to join our [Discord server](https://discord.gg/XmdRWSCy2U) so we can help you!
+It is highly recommended to join our [Discord server](https://discord.gg/VDAr7fEbs9) so we can help you!

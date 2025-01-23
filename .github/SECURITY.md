@@ -9,4 +9,4 @@ Security patches are provided for the latest released minor version.
 
 ## Reporting a Vulnerability
 
-You can make a GitHub issue, contact us on [Discord](https://discord.gg/XmdRWSCy2U) or email security@uoa-discords.com. Updates should be given within a few days at most.
+You can make a GitHub issue, contact us on [Discord](https://discord.gg/VDAr7fEbs9) or email security@uoa-discords.com. Updates should be given within a few days at most.
